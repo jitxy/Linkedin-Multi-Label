@@ -22,15 +22,19 @@
   "content_scripts": [
     {
       "matches": [
+        "https://www.linkedin.com/messaging/",
         "https://www.linkedin.com/messaging/*",
         "https://www.linkedin.com/in/*",
+        "https://www.linkedin.com/feed/*",
+        "https://www.linkedin.com/sales/inbox/",
         "https://www.linkedin.com/sales/inbox/*",
         "https://www.linkedin.com/sales/people/*",
         "https://www.linkedin.com/sales/lead/*"
       ],
       "js": ["content/content.js"],
       "css": ["content/content.css"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "side_panel": {

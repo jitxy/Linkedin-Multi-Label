@@ -801,30 +801,63 @@ const LINKEDIN_URL = 'https://www.linkedin.com/messaging/';
 
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
+async function findLinkedInTab() {
+  const tabs = await chrome.tabs.query({});
+  // Prefer messaging/inbox tabs (already have content loaded)
+  return (
+    tabs.find(t => t.url && (t.url.includes('linkedin.com/messaging') || t.url.includes('linkedin.com/sales/inbox'))) ||
+    tabs.find(t => t.url && t.url.includes('linkedin.com'))
+  );
+}
+
+async function pingContentScript(tabId) {
+  try {
+    const res = await chrome.tabs.sendMessage(tabId, { type: 'PING' });
+    return res?.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 async function syncConversations() {
   const btn = document.getElementById('btn-sync');
   btn.classList.add('spinning');
 
   try {
-    // Try to scrape from active LinkedIn tab
-    const tabs = await chrome.tabs.query({});
-    const linkedInTab = tabs.find(t =>
-      t.url && (t.url.includes('linkedin.com/messaging') || t.url.includes('linkedin.com/sales/inbox'))
-    );
+    let linkedInTab = await findLinkedInTab();
 
-    if (linkedInTab) {
-      const result = await chrome.tabs.sendMessage(linkedInTab.id, { type: 'SCRAPE_NOW' });
-      if (result?.conversations?.length > 0) {
-        await chrome.runtime.sendMessage({
-          type: 'SYNC_CONVERSATIONS',
-          conversations: result.conversations,
-        });
-        showToast(`Synced ${result.conversations.length} conversations`, 'success');
-      } else {
-        showToast('No conversations found on the current page', 'error');
-      }
+    if (!linkedInTab) {
+      // Open LinkedIn messaging and wait for it to load
+      showToast('Opening LinkedIn Messaging…', '');
+      linkedInTab = await chrome.tabs.create({ url: 'https://www.linkedin.com/messaging/' });
+      // Wait for page load + React hydration
+      await new Promise(r => setTimeout(r, 5000));
+    } else if (!linkedInTab.url?.includes('/messaging') && !linkedInTab.url?.includes('/sales/inbox')) {
+      // Navigate existing tab to messaging
+      await chrome.tabs.update(linkedInTab.id, { url: 'https://www.linkedin.com/messaging/' });
+      await new Promise(r => setTimeout(r, 5000));
+    }
+
+    // Check if content script is alive
+    const alive = await pingContentScript(linkedInTab.id);
+    if (!alive) {
+      // Inject it manually
+      try {
+        await chrome.scripting.executeScript({ target: { tabId: linkedInTab.id }, files: ['content/content.js'] });
+        await chrome.scripting.insertCSS({ target: { tabId: linkedInTab.id }, files: ['content/content.css'] });
+        await new Promise(r => setTimeout(r, 1500));
+      } catch { /* scripting may not have permission on this URL */ }
+    }
+
+    const result = await chrome.tabs.sendMessage(linkedInTab.id, { type: 'SCRAPE_NOW' });
+    if (result?.conversations?.length > 0) {
+      await chrome.runtime.sendMessage({
+        type: 'SYNC_CONVERSATIONS',
+        conversations: result.conversations,
+      });
+      showToast(`Synced ${result.conversations.length} conversations`, 'success');
     } else {
-      showToast('Open LinkedIn Messaging to sync conversations', 'error');
+      showToast('Scroll the LinkedIn inbox to load conversations, then sync again', 'error');
     }
   } catch (err) {
     showToast('Sync failed: ' + err.message, 'error');
