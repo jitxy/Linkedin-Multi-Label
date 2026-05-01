@@ -1,0 +1,251 @@
+import { getConversations, setConversations, getOutreachAuth, setOutreachAuth } from '../utils/storage.js';
+
+const LINKEDIN_URL = 'https://www.linkedin.com/messaging/';
+const SALES_NAV_URL = 'https://www.linkedin.com/sales/inbox/';
+
+// Outreach OAuth config — user fills in their app credentials in Outreach settings
+// These are stored per-user in chrome.storage so they can enter their own app credentials
+const OUTREACH_AUTH_URL = 'https://api.outreach.io/oauth/authorize';
+const OUTREACH_TOKEN_URL = 'https://api.outreach.io/oauth/token';
+
+// Open side panel when toolbar icon is clicked
+chrome.action.onClicked.addListener(async (tab) => {
+  await chrome.sidePanel.open({ tabId: tab.id });
+});
+
+// Enable side panel on LinkedIn tabs automatically
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!tab.url) return;
+  const isLinkedIn = tab.url.includes('linkedin.com');
+  await chrome.sidePanel.setOptions({
+    tabId,
+    enabled: isLinkedIn,
+  });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  handleMessage(message, sender, sendResponse);
+  return true; // keep channel open for async responses
+});
+
+async function handleMessage(message, sender, sendResponse) {
+  try {
+    switch (message.type) {
+      case 'OPEN_LINKEDIN':
+        await openOrFocusTab(LINKEDIN_URL);
+        sendResponse({ ok: true });
+        break;
+
+      case 'OPEN_SALES_NAV':
+        await openOrFocusTab(SALES_NAV_URL);
+        sendResponse({ ok: true });
+        break;
+
+      case 'OPEN_SIDE_PANEL': {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab) await chrome.sidePanel.open({ tabId: tab.id });
+        sendResponse({ ok: true });
+        break;
+      }
+
+      case 'SYNC_CONVERSATIONS': {
+        await mergeConversations(message.conversations);
+        // Broadcast to sidepanel
+        chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
+        sendResponse({ ok: true });
+        break;
+      }
+
+      case 'SEND_MESSAGE': {
+        const result = await sendLinkedInMessage(message.conversationUrl, message.text);
+        sendResponse(result);
+        break;
+      }
+
+      case 'OUTREACH_CONNECT': {
+        const result = await startOutreachOAuth(message.clientId, message.clientSecret);
+        sendResponse(result);
+        break;
+      }
+
+      case 'OUTREACH_DISCONNECT': {
+        await setOutreachAuth(null);
+        sendResponse({ ok: true });
+        break;
+      }
+
+      case 'OUTREACH_REFRESH_TOKEN': {
+        const result = await refreshOutreachToken(message.clientId, message.clientSecret);
+        sendResponse(result);
+        break;
+      }
+
+      default:
+        sendResponse({ ok: false, error: 'Unknown message type' });
+    }
+  } catch (err) {
+    sendResponse({ ok: false, error: err.message });
+  }
+}
+
+async function openOrFocusTab(url) {
+  const tabs = await chrome.tabs.query({});
+  const existing = tabs.find(t => t.url && t.url.startsWith(url));
+  if (existing) {
+    await chrome.tabs.update(existing.id, { active: true });
+    await chrome.windows.update(existing.windowId, { focused: true });
+  } else {
+    await chrome.tabs.create({ url });
+  }
+}
+
+async function mergeConversations(incoming) {
+  const existing = await getConversations();
+  const map = Object.fromEntries(existing.map(c => [c.id, c]));
+  for (const c of incoming) {
+    if (map[c.id]) {
+      // Preserve labels, update messaging fields
+      map[c.id] = { ...map[c.id], ...c, labels: map[c.id].labels || [] };
+    } else {
+      map[c.id] = { ...c, labels: [] };
+    }
+  }
+  await setConversations(Object.values(map));
+}
+
+async function sendLinkedInMessage(conversationUrl, text) {
+  // Find an existing LinkedIn tab or open a new one
+  const tabs = await chrome.tabs.query({});
+  let linkedInTab = tabs.find(t => t.url && t.url.startsWith('https://www.linkedin.com'));
+
+  if (!linkedInTab) {
+    linkedInTab = await chrome.tabs.create({ url: conversationUrl });
+    // Wait for page to load
+    await waitForTabLoad(linkedInTab.id);
+  } else if (conversationUrl) {
+    await chrome.tabs.update(linkedInTab.id, { url: conversationUrl });
+    await waitForTabLoad(linkedInTab.id);
+  }
+
+  // Send message via content script
+  try {
+    const result = await chrome.tabs.sendMessage(linkedInTab.id, {
+      type: 'TYPE_AND_SEND',
+      text,
+    });
+    return result;
+  } catch {
+    // Content script might not be ready, inject it
+    await chrome.scripting.executeScript({
+      target: { tabId: linkedInTab.id },
+      files: ['content/content.js'],
+    });
+    await new Promise(r => setTimeout(r, 800));
+    const result = await chrome.tabs.sendMessage(linkedInTab.id, {
+      type: 'TYPE_AND_SEND',
+      text,
+    });
+    return result;
+  }
+}
+
+function waitForTabLoad(tabId) {
+  return new Promise((resolve) => {
+    function listener(updatedTabId, info) {
+      if (updatedTabId === tabId && info.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        setTimeout(resolve, 500); // extra wait for React hydration
+      }
+    }
+    chrome.tabs.onUpdated.addListener(listener);
+    setTimeout(resolve, 8000); // fallback timeout
+  });
+}
+
+async function startOutreachOAuth(clientId, clientSecret) {
+  const extensionId = chrome.runtime.id;
+  const redirectUri = `https://${extensionId}.chromiumapp.org/outreach`;
+  const state = Math.random().toString(36).slice(2);
+
+  const authUrl = new URL(OUTREACH_AUTH_URL);
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', 'accounts.all prospects.all sequenceStates.all sequences.all sequenceSteps.all tasks.all');
+  authUrl.searchParams.set('state', state);
+
+  let callbackUrl;
+  try {
+    callbackUrl = await chrome.identity.launchWebAuthFlow({
+      url: authUrl.toString(),
+      interactive: true,
+    });
+  } catch (err) {
+    return { ok: false, error: 'OAuth cancelled or failed: ' + err.message };
+  }
+
+  const params = new URL(callbackUrl).searchParams;
+  const code = params.get('code');
+  if (!code) return { ok: false, error: 'No auth code received' };
+
+  // Exchange code for tokens
+  const tokenRes = await fetch(OUTREACH_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    }),
+  });
+
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    return { ok: false, error: 'Token exchange failed: ' + err };
+  }
+
+  const tokens = await tokenRes.json();
+  const auth = {
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token,
+    expiresAt: Date.now() + tokens.expires_in * 1000,
+    clientId,
+    clientSecret,
+  };
+  await setOutreachAuth(auth);
+  return { ok: true, auth };
+}
+
+async function refreshOutreachToken(clientId, clientSecret) {
+  const auth = await getOutreachAuth();
+  if (!auth?.refreshToken) return { ok: false, error: 'No refresh token' };
+
+  const extensionId = chrome.runtime.id;
+  const redirectUri = `https://${extensionId}.chromiumapp.org/outreach`;
+
+  const tokenRes = await fetch(OUTREACH_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId || auth.clientId,
+      client_secret: clientSecret || auth.clientSecret,
+      refresh_token: auth.refreshToken,
+      redirect_uri: redirectUri,
+      grant_type: 'refresh_token',
+    }),
+  });
+
+  if (!tokenRes.ok) return { ok: false, error: 'Refresh failed' };
+
+  const tokens = await tokenRes.json();
+  const updated = {
+    ...auth,
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token || auth.refreshToken,
+    expiresAt: Date.now() + tokens.expires_in * 1000,
+  };
+  await setOutreachAuth(updated);
+  return { ok: true, auth: updated };
+}

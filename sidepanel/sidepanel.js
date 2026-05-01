@@ -1,0 +1,942 @@
+import {
+  getConversations, setConversations,
+  getLabels, createLabel, updateLabel, deleteLabel,
+  assignLabel, removeLabel,
+  getOutreachAuth, setOutreachAuth,
+  getOutreachConfig, setOutreachConfig,
+} from '../utils/storage.js';
+import {
+  getSequences, getSequenceSteps, getPendingLinkedInTasks, completeTask,
+} from '../utils/outreach.js';
+
+// ─── State ─────────────────────────────────────────────────────────────────
+
+let conversations = [];
+let labels = [];
+let activeTab = 'conversations';
+let selectedLabelFilter = 'all';
+let searchQuery = '';
+let activeConversation = null;
+let editingLabelId = null;
+let selectedColor = '#0A66C2';
+let outreachAuth = null;
+let outreachSequences = [];
+let pendingSteps = [];
+let openSequenceIds = new Set();
+
+const LABEL_COLORS = [
+  '#0A66C2', '#6366f1', '#8b5cf6', '#ec4899',
+  '#ef4444', '#f97316', '#f59e0b', '#eab308',
+  '#22c55e', '#10b981', '#14b8a6', '#06b6d4',
+  '#3b82f6', '#64748b', '#78716c', '#374151',
+];
+
+// ─── Init ───────────────────────────────────────────────────────────────────
+
+async function init() {
+  [conversations, labels, outreachAuth] = await Promise.all([
+    getConversations(),
+    getLabels(),
+    getOutreachAuth(),
+  ]);
+
+  renderAll();
+  setupEventListeners();
+
+  // Listen for conversation updates from content script (via background)
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === 'CONVERSATIONS_UPDATED') {
+      reloadConversations();
+    }
+  });
+
+  // Storage change listener for real-time label/conversation updates
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.conversations) {
+      conversations = changes.conversations.newValue || [];
+      renderConversationList();
+      renderFilterChips();
+    }
+    if (changes.labels) {
+      labels = changes.labels.newValue || [];
+      renderConversationList();
+      renderFilterChips();
+      renderLabelsList();
+    }
+    if (changes.outreachAuth) {
+      outreachAuth = changes.outreachAuth.newValue;
+      renderOutreachTab();
+    }
+  });
+}
+
+async function reloadConversations() {
+  conversations = await getConversations();
+  renderConversationList();
+  renderFilterChips();
+}
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+
+function renderAll() {
+  renderFilterChips();
+  renderConversationList();
+  renderLabelsList();
+  renderOutreachTab();
+  renderColorSwatches();
+}
+
+// ─── Tab switching ───────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.toggle('hidden', el.id !== `tab-${tab}`);
+    el.classList.toggle('active', el.id === `tab-${tab}`);
+  });
+}
+
+// ─── Filter chips ────────────────────────────────────────────────────────────
+
+function renderFilterChips() {
+  const container = document.getElementById('label-filters');
+  container.innerHTML = '';
+
+  const allChip = document.createElement('button');
+  allChip.className = `chip${selectedLabelFilter === 'all' ? ' active' : ''}`;
+  allChip.dataset.labelId = 'all';
+  allChip.textContent = 'All';
+  allChip.addEventListener('click', () => setLabelFilter('all'));
+  container.appendChild(allChip);
+
+  for (const label of labels) {
+    const chip = document.createElement('button');
+    chip.className = `chip${selectedLabelFilter === label.id ? ' active' : ''}`;
+    chip.dataset.labelId = label.id;
+
+    const dot = document.createElement('span');
+    dot.className = 'chip-dot';
+    dot.style.background = label.color;
+    chip.appendChild(dot);
+    chip.appendChild(document.createTextNode(label.name));
+    chip.addEventListener('click', () => setLabelFilter(label.id));
+    container.appendChild(chip);
+  }
+}
+
+function setLabelFilter(labelId) {
+  selectedLabelFilter = labelId;
+  renderFilterChips();
+  renderConversationList();
+}
+
+// ─── Conversations ───────────────────────────────────────────────────────────
+
+function getFilteredConversations() {
+  let list = [...conversations];
+
+  if (selectedLabelFilter !== 'all') {
+    list = list.filter(c => (c.labels || []).includes(selectedLabelFilter));
+  }
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.snippet?.toLowerCase().includes(q)
+    );
+  }
+
+  list.sort((a, b) => (b.scrapedAt || 0) - (a.scrapedAt || 0));
+  return list;
+}
+
+function renderConversationList() {
+  const container = document.getElementById('conv-list');
+  const emptyEl = document.getElementById('conv-empty');
+  const filtered = getFilteredConversations();
+
+  // Remove existing cards (preserve empty state)
+  container.querySelectorAll('.conv-card').forEach(el => el.remove());
+
+  if (filtered.length === 0) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+
+  for (const conv of filtered) {
+    const card = buildConversationCard(conv);
+    container.appendChild(card);
+  }
+}
+
+function buildConversationCard(conv) {
+  const card = document.createElement('div');
+  card.className = `conv-card${conv.isUnread ? ' unread' : ''}${activeConversation?.id === conv.id ? ' selected' : ''}`;
+  card.dataset.convId = conv.id;
+
+  // Avatar
+  const avatar = document.createElement('div');
+  avatar.className = 'conv-avatar';
+  if (conv.avatarUrl && !conv.avatarUrl.startsWith('data:')) {
+    const img = document.createElement('img');
+    img.src = conv.avatarUrl;
+    img.alt = conv.name;
+    img.onerror = () => { avatar.textContent = getInitials(conv.name); };
+    avatar.appendChild(img);
+  } else {
+    avatar.textContent = getInitials(conv.name);
+    avatar.style.background = stringToColor(conv.name);
+  }
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'conv-body';
+
+  const top = document.createElement('div');
+  top.className = 'conv-top';
+
+  const name = document.createElement('span');
+  name.className = 'conv-name';
+  name.textContent = conv.name;
+
+  const time = document.createElement('span');
+  time.className = 'conv-time';
+  time.textContent = formatTime(conv.timestamp);
+
+  top.appendChild(name);
+  top.appendChild(time);
+
+  const snippet = document.createElement('div');
+  snippet.className = 'conv-snippet';
+  snippet.textContent = conv.snippet || 'No messages yet';
+
+  const tags = document.createElement('div');
+  tags.className = 'conv-tags';
+
+  // Assigned labels
+  const assignedLabels = (conv.labels || []).map(id => labels.find(l => l.id === id)).filter(Boolean);
+  for (const label of assignedLabels) {
+    const tag = document.createElement('span');
+    tag.className = 'conv-tag';
+    tag.style.background = label.color;
+    tag.textContent = label.name;
+    tag.title = `Click to remove ${label.name}`;
+    tag.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await removeLabel(conv.id, label.id);
+    });
+    tags.appendChild(tag);
+  }
+
+  // Add label "+" button
+  if (labels.length > 0) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'conv-add-label';
+    addBtn.title = 'Add label';
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showLabelAssignDropdown(addBtn, conv);
+    });
+    tags.appendChild(addBtn);
+  }
+
+  // Unread dot
+  if (conv.isUnread) {
+    const dot = document.createElement('div');
+    dot.className = 'unread-dot';
+    card.appendChild(dot);
+  }
+
+  body.appendChild(top);
+  body.appendChild(snippet);
+  body.appendChild(tags);
+  card.appendChild(avatar);
+  card.appendChild(body);
+
+  // Click → open message composer
+  card.addEventListener('click', () => selectConversation(conv));
+
+  return card;
+}
+
+function selectConversation(conv) {
+  activeConversation = conv;
+  renderConversationList();
+  openMessageComposer(conv);
+}
+
+function openMessageComposer(conv) {
+  const composer = document.getElementById('message-composer');
+  const nameEl = document.getElementById('composer-name');
+  const textarea = document.getElementById('composer-text');
+
+  nameEl.textContent = `Message to ${conv.name}`;
+  textarea.value = '';
+  composer.classList.remove('hidden');
+  textarea.focus();
+}
+
+function closeMessageComposer() {
+  activeConversation = null;
+  document.getElementById('message-composer').classList.add('hidden');
+  renderConversationList();
+}
+
+async function sendMessage() {
+  if (!activeConversation) return;
+  const textarea = document.getElementById('composer-text');
+  const text = textarea.value.trim();
+  if (!text) return;
+
+  const btn = document.getElementById('btn-send-message');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: 'SEND_MESSAGE',
+      conversationUrl: activeConversation.url,
+      text,
+    });
+
+    if (result?.ok) {
+      textarea.value = '';
+      showToast('Message sent!', 'success');
+      closeMessageComposer();
+    } else {
+      showToast(result?.error || 'Send failed', 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg> Send`;
+  }
+}
+
+// Label assign dropdown (inline in sidepanel)
+function showLabelAssignDropdown(anchor, conv) {
+  document.querySelectorAll('.label-assign-dropdown').forEach(el => el.remove());
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'label-assign-dropdown';
+
+  const assigned = conv.labels || [];
+
+  for (const label of labels) {
+    const item = document.createElement('div');
+    item.className = `label-assign-item${assigned.includes(label.id) ? ' assigned' : ''}`;
+
+    const dot = document.createElement('span');
+    dot.className = 'label-assign-dot';
+    dot.style.background = label.color;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = label.name;
+
+    if (assigned.includes(label.id)) {
+      const check = document.createElement('span');
+      check.style.marginLeft = 'auto';
+      check.style.color = '#22c55e';
+      check.textContent = '✓';
+      item.appendChild(dot);
+      item.appendChild(nameSpan);
+      item.appendChild(check);
+    } else {
+      item.appendChild(dot);
+      item.appendChild(nameSpan);
+    }
+
+    item.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (assigned.includes(label.id)) {
+        await removeLabel(conv.id, label.id);
+        showToast(`Removed "${label.name}"`, 'success');
+      } else {
+        await assignLabel(conv.id, label.id);
+        showToast(`Added "${label.name}"`, 'success');
+      }
+      dropdown.remove();
+    });
+
+    dropdown.appendChild(item);
+  }
+
+  document.body.appendChild(dropdown);
+
+  const rect = anchor.getBoundingClientRect();
+  dropdown.style.top = `${rect.bottom + 4}px`;
+  dropdown.style.left = `${Math.max(4, rect.left - dropdown.offsetWidth + rect.width)}px`;
+
+  setTimeout(() => {
+    document.addEventListener('click', () => dropdown.remove(), { once: true });
+  }, 0);
+}
+
+// ─── Labels tab ─────────────────────────────────────────────────────────────
+
+function renderColorSwatches() {
+  const container = document.getElementById('color-swatches');
+  container.innerHTML = '';
+
+  for (const color of LABEL_COLORS) {
+    const swatch = document.createElement('div');
+    swatch.className = `color-swatch${color === selectedColor ? ' selected' : ''}`;
+    swatch.style.background = color;
+    swatch.dataset.color = color;
+    swatch.title = color;
+    swatch.addEventListener('click', () => {
+      selectedColor = color;
+      renderColorSwatches();
+    });
+    container.appendChild(swatch);
+  }
+}
+
+function renderLabelsList() {
+  const container = document.getElementById('labels-list');
+  const emptyEl = document.getElementById('labels-empty');
+
+  container.querySelectorAll('.label-row, .label-delete-confirm').forEach(el => el.remove());
+
+  if (labels.length === 0) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+
+  for (const label of labels) {
+    const count = conversations.filter(c => (c.labels || []).includes(label.id)).length;
+    const row = buildLabelRow(label, count);
+    container.appendChild(row);
+  }
+}
+
+function buildLabelRow(label, count) {
+  const row = document.createElement('div');
+  row.className = 'label-row';
+  row.dataset.labelId = label.id;
+
+  const dot = document.createElement('div');
+  dot.className = 'label-color-dot';
+  dot.style.background = label.color;
+
+  const name = document.createElement('span');
+  name.className = 'label-row-name';
+  name.textContent = label.name;
+
+  const badge = document.createElement('span');
+  badge.className = 'label-count';
+  badge.textContent = count;
+
+  const actions = document.createElement('div');
+  actions.className = 'label-row-actions';
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'label-action-btn';
+  editBtn.title = 'Edit label';
+  editBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  editBtn.addEventListener('click', () => startEditLabel(label));
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'label-action-btn danger';
+  delBtn.title = 'Delete label';
+  delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+  delBtn.addEventListener('click', () => confirmDeleteLabel(label, row));
+
+  actions.appendChild(editBtn);
+  actions.appendChild(delBtn);
+
+  row.appendChild(dot);
+  row.appendChild(name);
+  row.appendChild(badge);
+  row.appendChild(actions);
+
+  return row;
+}
+
+function confirmDeleteLabel(label, row) {
+  const existing = document.querySelector('.label-delete-confirm');
+  if (existing) existing.remove();
+
+  const confirm = document.createElement('div');
+  confirm.className = 'label-delete-confirm';
+  confirm.innerHTML = `<span>Delete "${escapeHtml(label.name)}"?</span>`;
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-ghost btn-sm';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => confirm.remove());
+
+  const delBtn = document.createElement('button');
+  delBtn.style.cssText = 'padding:4px 10px;background:#ef4444;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;';
+  delBtn.textContent = 'Delete';
+  delBtn.addEventListener('click', async () => {
+    await deleteLabel(label.id);
+    confirm.remove();
+    showToast(`Deleted "${label.name}"`, 'success');
+  });
+
+  confirm.appendChild(cancelBtn);
+  confirm.appendChild(delBtn);
+  row.insertAdjacentElement('afterend', confirm);
+}
+
+function startEditLabel(label) {
+  editingLabelId = label.id;
+  selectedColor = label.color;
+
+  const form = document.getElementById('label-form');
+  const nameInput = document.getElementById('label-name-input');
+  nameInput.value = label.name;
+
+  form.classList.remove('hidden');
+  renderColorSwatches();
+  nameInput.focus();
+  nameInput.select();
+
+  document.getElementById('btn-new-label').textContent = 'Editing…';
+}
+
+function showNewLabelForm() {
+  editingLabelId = null;
+  selectedColor = LABEL_COLORS[0];
+  const form = document.getElementById('label-form');
+  const nameInput = document.getElementById('label-name-input');
+  nameInput.value = '';
+  form.classList.remove('hidden');
+  renderColorSwatches();
+  nameInput.focus();
+}
+
+function hideLabelForm() {
+  editingLabelId = null;
+  document.getElementById('label-form').classList.add('hidden');
+  document.getElementById('label-name-input').value = '';
+  document.getElementById('btn-new-label').innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New Label`;
+}
+
+async function saveLabel() {
+  const name = document.getElementById('label-name-input').value.trim();
+  if (!name) {
+    document.getElementById('label-name-input').focus();
+    return;
+  }
+
+  if (editingLabelId) {
+    await updateLabel(editingLabelId, { name, color: selectedColor });
+    showToast('Label updated', 'success');
+  } else {
+    await createLabel(name, selectedColor);
+    showToast(`Label "${name}" created`, 'success');
+  }
+
+  hideLabelForm();
+}
+
+// ─── Outreach tab ────────────────────────────────────────────────────────────
+
+function renderOutreachTab() {
+  const disconnectedEl = document.getElementById('outreach-disconnected');
+  const connectedEl = document.getElementById('outreach-connected');
+
+  if (outreachAuth?.accessToken) {
+    disconnectedEl.classList.add('hidden');
+    connectedEl.classList.remove('hidden');
+  } else {
+    disconnectedEl.classList.remove('hidden');
+    connectedEl.classList.add('hidden');
+  }
+}
+
+async function connectOutreach() {
+  const clientId = document.getElementById('outreach-client-id').value.trim();
+  const clientSecret = document.getElementById('outreach-client-secret').value.trim();
+  const errorEl = document.getElementById('outreach-connect-error');
+  const btn = document.getElementById('btn-outreach-connect');
+
+  if (!clientId || !clientSecret) {
+    errorEl.textContent = 'Please enter both Client ID and Client Secret.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  errorEl.classList.add('hidden');
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+
+  // Save config first
+  await setOutreachConfig({ clientId, clientSecret });
+
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: 'OUTREACH_CONNECT',
+      clientId,
+      clientSecret,
+    });
+
+    if (result.ok) {
+      outreachAuth = result.auth;
+      renderOutreachTab();
+      showToast('Outreach connected!', 'success');
+      await loadOutreachSequences();
+    } else {
+      errorEl.textContent = result.error || 'Connection failed';
+      errorEl.classList.remove('hidden');
+    }
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Connect with Outreach';
+  }
+}
+
+async function disconnectOutreach() {
+  await chrome.runtime.sendMessage({ type: 'OUTREACH_DISCONNECT' });
+  outreachAuth = null;
+  outreachSequences = [];
+  pendingSteps = [];
+  renderOutreachTab();
+  renderSequencesList();
+  showToast('Outreach disconnected', 'success');
+}
+
+async function loadOutreachSequences() {
+  if (!outreachAuth?.accessToken) return;
+
+  const loadingEl = document.getElementById('sequences-loading');
+  const listEl = document.getElementById('sequences-list');
+  const emptyEl = document.getElementById('sequences-empty');
+
+  loadingEl.classList.remove('hidden');
+  listEl.querySelectorAll('.sequence-group').forEach(el => el.remove());
+  emptyEl.classList.add('hidden');
+
+  try {
+    const [sequences, tasks] = await Promise.all([
+      getSequences(outreachAuth),
+      getPendingLinkedInTasks(outreachAuth),
+    ]);
+
+    outreachSequences = sequences;
+    pendingSteps = tasks;
+
+    loadingEl.classList.add('hidden');
+    renderSequencesList();
+  } catch (err) {
+    loadingEl.classList.add('hidden');
+    showToast('Failed to load Outreach data: ' + err.message, 'error');
+    emptyEl.classList.remove('hidden');
+  }
+}
+
+function renderSequencesList() {
+  const listEl = document.getElementById('sequences-list');
+  const emptyEl = document.getElementById('sequences-empty');
+
+  listEl.querySelectorAll('.sequence-group').forEach(el => el.remove());
+
+  if (pendingSteps.length === 0) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+
+  // Group tasks by sequence
+  const grouped = new Map();
+  for (const task of pendingSteps) {
+    const key = task.sequence.id;
+    if (!grouped.has(key)) {
+      grouped.set(key, { sequence: task.sequence, tasks: [] });
+    }
+    grouped.get(key).tasks.push(task);
+  }
+
+  for (const [seqId, { sequence, tasks }] of grouped) {
+    const group = buildSequenceGroup(seqId, sequence, tasks);
+    listEl.appendChild(group);
+  }
+}
+
+function buildSequenceGroup(seqId, sequence, tasks) {
+  const group = document.createElement('div');
+  group.className = `sequence-group${openSequenceIds.has(seqId) ? ' open' : ''}`;
+
+  const header = document.createElement('div');
+  header.className = 'sequence-group-header';
+
+  const seqName = document.createElement('span');
+  seqName.className = 'sequence-group-name';
+  seqName.textContent = sequence.name;
+
+  const count = document.createElement('span');
+  count.className = 'sequence-step-count';
+  count.textContent = `${tasks.length} step${tasks.length !== 1 ? 's' : ''}`;
+
+  const chevron = document.createElement('svg');
+  chevron.setAttribute('width', '14');
+  chevron.setAttribute('height', '14');
+  chevron.setAttribute('viewBox', '0 0 24 24');
+  chevron.setAttribute('fill', 'none');
+  chevron.setAttribute('stroke', 'currentColor');
+  chevron.setAttribute('stroke-width', '2');
+  chevron.className = 'chevron';
+  chevron.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
+
+  header.appendChild(seqName);
+  header.appendChild(count);
+  header.appendChild(chevron);
+
+  header.addEventListener('click', () => {
+    group.classList.toggle('open');
+    if (group.classList.contains('open')) {
+      openSequenceIds.add(seqId);
+    } else {
+      openSequenceIds.delete(seqId);
+    }
+  });
+
+  const steps = document.createElement('div');
+  steps.className = 'sequence-steps';
+
+  for (const task of tasks) {
+    steps.appendChild(buildStepCard(task, seqId));
+  }
+
+  group.appendChild(header);
+  group.appendChild(steps);
+  return group;
+}
+
+function buildStepCard(task, seqId) {
+  const card = document.createElement('div');
+  card.className = 'step-card';
+
+  const header = document.createElement('div');
+  header.className = 'step-card-header';
+
+  const prospectName = document.createElement('div');
+  prospectName.className = 'step-prospect-name';
+  prospectName.textContent = task.prospect.name || 'Unknown Prospect';
+
+  const badge = document.createElement('span');
+  badge.className = 'step-badge';
+  badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14zm-7 3.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm1 4h-2v6h2v-6z"/></svg> LinkedIn`;
+
+  header.appendChild(prospectName);
+  header.appendChild(badge);
+
+  const company = document.createElement('div');
+  company.className = 'step-company';
+  company.textContent = [task.prospect.title, task.prospect.company].filter(Boolean).join(' · ') || 'No details';
+
+  const actions = document.createElement('div');
+  actions.className = 'step-actions';
+
+  if (task.prospect.linkedinUrl) {
+    const openBtn = document.createElement('button');
+    openBtn.className = 'btn-open-profile';
+    openBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Open Profile`;
+    openBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_LINKEDIN' });
+      chrome.tabs.create({ url: task.prospect.linkedinUrl });
+    });
+    actions.appendChild(openBtn);
+  }
+
+  const execBtn = document.createElement('button');
+  execBtn.className = 'btn-execute';
+  execBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg> Send via LinkedIn`;
+  execBtn.addEventListener('click', () => executeOutreachStep(task, execBtn, card));
+  actions.appendChild(execBtn);
+
+  card.appendChild(header);
+  card.appendChild(company);
+  card.appendChild(actions);
+
+  return card;
+}
+
+async function executeOutreachStep(task, btn, card) {
+  const message = `Hi ${task.prospect.name?.split(' ')[0] || 'there'},\n\nI wanted to reach out regarding ${task.sequence.name}. Would you be open to connecting?\n\nBest regards`;
+
+  // Open a quick message composer pre-filled
+  const composer = document.getElementById('message-composer');
+  const nameEl = document.getElementById('composer-name');
+  const textarea = document.getElementById('composer-text');
+
+  // Switch to conversations tab to show composer
+  switchTab('conversations');
+
+  // Create a virtual conversation object for the prospect
+  const virtualConv = {
+    id: `outreach_${task.id}`,
+    name: task.prospect.name,
+    url: task.prospect.linkedinUrl || LINKEDIN_URL,
+    labels: [],
+    isOutreachTask: true,
+    outreachTaskId: task.id,
+    outreachStateId: task.id,
+  };
+
+  activeConversation = virtualConv;
+  nameEl.textContent = `Message to ${task.prospect.name} (Outreach Step ${task.stepNumber})`;
+  textarea.value = message;
+  composer.classList.remove('hidden');
+  textarea.focus();
+}
+
+const LINKEDIN_URL = 'https://www.linkedin.com/messaging/';
+
+// ─── Sync ────────────────────────────────────────────────────────────────────
+
+async function syncConversations() {
+  const btn = document.getElementById('btn-sync');
+  btn.classList.add('spinning');
+
+  try {
+    // Try to scrape from active LinkedIn tab
+    const tabs = await chrome.tabs.query({});
+    const linkedInTab = tabs.find(t =>
+      t.url && (t.url.includes('linkedin.com/messaging') || t.url.includes('linkedin.com/sales/inbox'))
+    );
+
+    if (linkedInTab) {
+      const result = await chrome.tabs.sendMessage(linkedInTab.id, { type: 'SCRAPE_NOW' });
+      if (result?.conversations?.length > 0) {
+        await chrome.runtime.sendMessage({
+          type: 'SYNC_CONVERSATIONS',
+          conversations: result.conversations,
+        });
+        showToast(`Synced ${result.conversations.length} conversations`, 'success');
+      } else {
+        showToast('No conversations found on the current page', 'error');
+      }
+    } else {
+      showToast('Open LinkedIn Messaging to sync conversations', 'error');
+    }
+  } catch (err) {
+    showToast('Sync failed: ' + err.message, 'error');
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+// ─── Event listeners ─────────────────────────────────────────────────────────
+
+function setupEventListeners() {
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Search
+  document.getElementById('conv-search').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderConversationList();
+  });
+
+  // Sync
+  document.getElementById('btn-sync').addEventListener('click', syncConversations);
+
+  // Composer
+  document.getElementById('composer-close').addEventListener('click', closeMessageComposer);
+  document.getElementById('btn-send-message').addEventListener('click', sendMessage);
+  document.getElementById('composer-text').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Labels
+  document.getElementById('btn-new-label').addEventListener('click', showNewLabelForm);
+  document.getElementById('btn-label-cancel').addEventListener('click', hideLabelForm);
+  document.getElementById('btn-label-save').addEventListener('click', saveLabel);
+  document.getElementById('label-name-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveLabel();
+    if (e.key === 'Escape') hideLabelForm();
+  });
+
+  // Outreach
+  document.getElementById('btn-outreach-connect').addEventListener('click', connectOutreach);
+  document.getElementById('btn-outreach-disconnect').addEventListener('click', disconnectOutreach);
+  document.getElementById('btn-refresh-sequences').addEventListener('click', loadOutreachSequences);
+
+  // Quick actions
+  document.getElementById('btn-open-linkedin').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'OPEN_LINKEDIN' });
+  });
+  document.getElementById('btn-open-salesnav').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'OPEN_SALES_NAV' });
+  });
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+
+let toastTimeout = null;
+
+function showToast(message, type = '') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast${type ? ' ' + type : ''}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('hidden');
+  }, 2800);
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() || '?';
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function stringToColor(str) {
+  if (!str) return '#0A66C2';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#22c55e', '#0A66C2'];
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return timestamp;
+  const now = new Date();
+  const diff = now - date;
+  if (diff < 60000) return 'now';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+  if (diff < 7 * 86400000) return `${Math.floor(diff / 86400000)}d`;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+
+init().catch(console.error);

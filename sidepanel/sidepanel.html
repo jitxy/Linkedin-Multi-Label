@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Multi-Label</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="4" fill="#0A66C2"/>
+        <path d="M7 10h2v7H7v-7zm1-3a1.2 1.2 0 1 1 0 2.4A1.2 1.2 0 0 1 8 7zm4 3h2v1h.03C14.5 10.4 15.4 10 16.5 10c2.2 0 3 1.4 3 3.2V17h-2v-3.4c0-.8-.01-1.8-1.1-1.8-1.1 0-1.4.86-1.4 1.75V17H13v-7z" fill="white"/>
+      </svg>
+      <span class="app-title">Multi-Label</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-sync" title="Sync conversations">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Tab bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="conversations">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Conversations
+    </button>
+    <button class="tab-btn" data-tab="labels">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+      </svg>
+      Labels
+    </button>
+    <button class="tab-btn" data-tab="outreach">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Outreach
+    </button>
+  </nav>
+
+  <!-- ── Conversations Tab ─────────────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-conversations">
+    <div class="search-bar">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="conv-search" placeholder="Search conversations…" autocomplete="off">
+    </div>
+
+    <div class="filter-chips" id="label-filters">
+      <button class="chip active" data-label-id="all">All</button>
+      <!-- Label chips injected here -->
+    </div>
+
+    <div class="conv-list" id="conv-list">
+      <div class="empty-state" id="conv-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p>No conversations yet.</p>
+        <p class="hint">Visit <strong>LinkedIn Messaging</strong> or <strong>Sales Navigator</strong> to sync.</p>
+      </div>
+    </div>
+
+    <!-- Quick message composer (shown when a conversation is selected) -->
+    <div class="message-composer hidden" id="message-composer">
+      <div class="composer-header">
+        <span id="composer-name"></span>
+        <button class="icon-btn composer-close" id="composer-close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <textarea id="composer-text" placeholder="Type a message…" rows="3"></textarea>
+      <div class="composer-actions">
+        <span class="composer-hint">Sends via LinkedIn</span>
+        <button class="btn-primary" id="btn-send-message">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m22 2-7 20-4-9-9-4 20-7z"/>
+          </svg>
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Labels Tab ────────────────────────────────────────────────────── -->
+  <div class="tab-content hidden" id="tab-labels">
+    <div class="labels-header">
+      <span class="section-title">Your Labels</span>
+      <button class="btn-primary btn-sm" id="btn-new-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New Label
+      </button>
+    </div>
+
+    <!-- Create / Edit label form -->
+    <div class="label-form hidden" id="label-form">
+      <input type="text" id="label-name-input" placeholder="Label name…" maxlength="40" autocomplete="off">
+      <div class="color-picker">
+        <span class="cp-label">Color:</span>
+        <div class="color-swatches" id="color-swatches"></div>
+      </div>
+      <div class="label-form-actions">
+        <button class="btn-ghost btn-sm" id="btn-label-cancel">Cancel</button>
+        <button class="btn-primary btn-sm" id="btn-label-save">Save</button>
+      </div>
+    </div>
+
+    <div class="labels-list" id="labels-list">
+      <div class="empty-state" id="labels-empty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <circle cx="7" cy="7" r="1.5"/>
+        </svg>
+        <p>No labels yet.</p>
+        <p class="hint">Click <strong>New Label</strong> to create one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Outreach Tab ──────────────────────────────────────────────────── -->
+  <div class="tab-content hidden" id="tab-outreach">
+
+    <!-- Disconnected state -->
+    <div id="outreach-disconnected">
+      <div class="outreach-connect-card">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="1.5">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <h3>Connect Outreach.io</h3>
+        <p>Link your Outreach account to see LinkedIn steps from your sequences and execute them directly.</p>
+
+        <div class="form-group">
+          <label>OAuth App Client ID</label>
+          <input type="text" id="outreach-client-id" placeholder="Your Outreach app client_id" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>OAuth App Client Secret</label>
+          <input type="password" id="outreach-client-secret" placeholder="Your Outreach app client_secret">
+        </div>
+        <p class="outreach-hint">
+          Create an OAuth app in <strong>Outreach Settings → API</strong> and set the redirect URI to your extension's callback URL.
+        </p>
+        <button class="btn-primary btn-full" id="btn-outreach-connect">
+          Connect with Outreach
+        </button>
+        <div class="error-msg hidden" id="outreach-connect-error"></div>
+      </div>
+    </div>
+
+    <!-- Connected state -->
+    <div id="outreach-connected" class="hidden">
+      <div class="outreach-status-bar">
+        <div class="outreach-connected-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+          Connected
+        </div>
+        <button class="btn-ghost btn-sm" id="btn-outreach-disconnect">Disconnect</button>
+      </div>
+
+      <div class="sequences-toolbar">
+        <span class="section-title">LinkedIn Steps</span>
+        <button class="icon-btn" id="btn-refresh-sequences" title="Refresh from Outreach">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="loading-state hidden" id="sequences-loading">
+        <div class="spinner"></div>
+        <span>Loading sequences…</span>
+      </div>
+
+      <div class="sequences-list" id="sequences-list">
+        <div class="empty-state" id="sequences-empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <p>No active LinkedIn steps found.</p>
+          <p class="hint">Refresh to load your Outreach sequences.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Quick actions footer ──────────────────────────────────────────── -->
+  <footer class="quick-actions">
+    <button class="quick-action-btn" id="btn-open-linkedin" title="Open LinkedIn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+      </svg>
+      <span>LinkedIn</span>
+    </button>
+    <button class="quick-action-btn" id="btn-open-salesnav" title="Open Sales Navigator">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span>Sales Nav</span>
+    </button>
+  </footer>
+
+  <!-- Toast notification -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="sidepanel.js" type="module"></script>
+</body>
+</html>
