@@ -168,109 +168,6 @@ body {
 
 .tab-content.hidden { display: none !important; }
 
-/* ── LinkedIn account bar ───────────────────────────────────────────────────── */
-.li-account-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.li-sync-prompt {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
-
-.li-sync-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #0A66C2;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.li-sync-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.li-sync-text strong {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.li-sync-text span {
-  font-size: 10px;
-  color: var(--text-light);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.li-account-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-}
-
-.li-account-row.hidden { display: none; }
-
-.li-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--brand);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.li-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.li-account-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.li-account-info strong {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.li-account-info span {
-  font-size: 10px;
-  color: var(--text-light);
-}
-
 /* ── Search bar ────────────────────────────────────────────────────────────── */
 .search-bar {
   display: flex;
@@ -1001,5 +898,296 @@ body {
   background: var(--brand);
   flex-shrink: 0;
   align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* ── LinkedIn account bar ───────────────────────────────────────────────────── */
+.li-account-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.li-sync-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.li-sync-icon {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.li-sync-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.li-sync-text strong { font-size: 13px; font-weight: 600; color: var(--text); }
+.li-sync-text span { font-size: 11px; color: var(--text-muted); }
+
+.li-account-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.li-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.li-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.li-account-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.li-account-info strong { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li-account-info span { font-size: 11px; color: var(--text-muted); }
+
+.sync-method-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: #dcfce7;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.li-passive-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 7px 14px 9px;
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  font-size: 11px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+.li-passive-notice svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ── Settings tab ───────────────────────────────────────────────────────────── */
+#tab-settings {
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#tab-settings.hidden { display: none; }
+
+.settings-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.plan-badge.plan-a { background: #dbeafe; color: #1d4ed8; }
+.plan-badge.plan-b { background: #fef3c7; color: #b45309; }
+.plan-badge.plan-c { background: #f0fdf4; color: #15803d; }
+
+.plan-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.plan-status.passive { color: #b45309; }
+.plan-status.inactive { color: var(--text-light); }
+
+.settings-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.settings-result {
+  margin-top: 2px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.settings-result.hidden { display: none; }
+.settings-result.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+.settings-result.error { background: #fff5f5; border: 1px solid #fecaca; color: var(--danger); }
+
+/* Toggle switch */
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.toggle-label {
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #d1d5db;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider { background: var(--brand); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+/* Copy field */
+.copy-field {
+  display: flex;
+  gap: 6px;
+}
+
+.copy-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+/* OAuth profile row */
+.oauth-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.oauth-scope-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.oauth-scope-info p { margin: 0; }
+
+.settings-link {
+  font-size: 12px;
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.settings-link:hover { text-decoration: underline; }
+
+/* Exchange notice */
+.exchange-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: #15803d;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--text-muted);
   margin-top: 4px;
 }

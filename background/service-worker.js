@@ -69,6 +69,25 @@ async function handleMessage(message, sender, sendResponse) {
         break;
       }
 
+      // Plan C — LinkedIn OAuth using user's registered Developer App
+      case 'LINKEDIN_OAUTH_CONNECT': {
+        const result = await startLinkedInOAuth(message.clientId);
+        sendResponse(result);
+        break;
+      }
+
+      case 'LINKEDIN_OAUTH_EXCHANGE': {
+        const result = await exchangeLinkedInCode(message.clientId, message.clientSecret, message.code, message.redirectUri);
+        sendResponse(result);
+        break;
+      }
+
+      case 'LINKEDIN_OAUTH_DISCONNECT': {
+        await chrome.storage.local.remove(['linkedInOAuth', 'linkedInProfile']);
+        sendResponse({ ok: true });
+        break;
+      }
+
       case 'SEND_MESSAGE': {
         const result = await sendLinkedInMessage(message.conversationUrl, message.text);
         sendResponse(result);
@@ -171,6 +190,94 @@ async function fetchLinkedInProfile() {
     const result = await chrome.tabs.sendMessage(tab.id, { type: 'FETCH_VOYAGER_PROFILE' });
     return result || null;
   } catch { return null; }
+}
+
+// ─── Plan C: LinkedIn OAuth ────────────────────────────────────────────────
+// Uses LinkedIn's official OAuth 2.0 with openid + profile scopes.
+// Messaging requires LinkedIn Partner API access — this sets up the auth
+// infrastructure and fetches profile/basic data available to any app.
+
+const LI_AUTH_URL  = 'https://www.linkedin.com/oauth/v2/authorization';
+const LI_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
+const LI_API_BASE  = 'https://api.linkedin.com/v2';
+
+async function startLinkedInOAuth(clientId) {
+  if (!clientId) return { ok: false, error: 'Client ID is required' };
+
+  const extensionId = chrome.runtime.id;
+  const redirectUri = `https://${extensionId}.chromiumapp.org/linkedin`;
+  const state = crypto.randomUUID();
+
+  const authUrl = new URL(LI_AUTH_URL);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('state', state);
+  // openid + profile = name/photo; email = email address.
+  // r_messaging_member = messaging (requires LinkedIn Partner approval)
+  authUrl.searchParams.set('scope', 'openid profile email');
+
+  let callbackUrl;
+  try {
+    callbackUrl = await chrome.identity.launchWebAuthFlow({ url: authUrl.toString(), interactive: true });
+  } catch (err) {
+    return { ok: false, error: 'OAuth cancelled: ' + err.message };
+  }
+
+  const params = new URL(callbackUrl).searchParams;
+  if (params.get('error')) return { ok: false, error: params.get('error_description') || params.get('error') };
+  const code = params.get('code');
+  if (!code) return { ok: false, error: 'No authorization code received' };
+
+  // Exchange code for tokens — requires a backend proxy because the client_secret
+  // must not be in the extension. For demo/testing we support a simple proxy URL
+  // or a direct exchange if the user provides their client_secret.
+  return {
+    ok: false,
+    requiresSecret: true,
+    code,
+    redirectUri,
+    message: 'Code received. Enter your app client_secret to complete the exchange, or set up a backend proxy.',
+  };
+}
+
+// Exchange auth code → access token (called after user provides client_secret)
+async function exchangeLinkedInCode(clientId, clientSecret, code, redirectUri) {
+  const tokenRes = await fetch(LI_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri, client_id: clientId, client_secret: clientSecret }),
+  });
+
+  if (!tokenRes.ok) return { ok: false, error: `Token exchange failed: ${tokenRes.status}` };
+  const tokens = await tokenRes.json();
+
+  const oauth = {
+    accessToken: tokens.access_token,
+    expiresAt: Date.now() + (tokens.expires_in || 3600) * 1000,
+    scope: tokens.scope || 'openid profile email',
+    clientId,
+  };
+
+  // Fetch profile via OpenID Connect userinfo endpoint
+  const profileRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+    headers: { Authorization: `Bearer ${oauth.accessToken}` },
+  });
+
+  let profile = { name: 'LinkedIn User', avatarUrl: '', email: '' };
+  if (profileRes.ok) {
+    const p = await profileRes.json();
+    profile = {
+      name: `${p.given_name || ''} ${p.family_name || ''}`.trim() || p.name || 'LinkedIn User',
+      avatarUrl: p.picture || '',
+      email: p.email || '',
+      sub: p.sub,
+      source: 'oauth',
+    };
+  }
+
+  await chrome.storage.local.set({ linkedInOAuth: oauth, linkedInProfile: profile });
+  return { ok: true, oauth, profile };
 }
 
 async function openOrFocusTab(url) {

@@ -36,7 +36,10 @@ const LABEL_COLORS = [
 // ─── Init ───────────────────────────────────────────────────────────────────
 
 async function init() {
-  const stored = await chrome.storage.local.get(['conversations', 'labels', 'outreachAuth', 'linkedInProfile', 'lastSyncedAt']);
+  const stored = await chrome.storage.local.get([
+    'conversations', 'labels', 'outreachAuth', 'linkedInProfile',
+    'lastSyncedAt', 'linkedInOAuth', 'passiveSyncEnabled',
+  ]);
   conversations = stored.conversations || [];
   labels = stored.labels || [];
   outreachAuth = stored.outreachAuth || null;
@@ -45,6 +48,7 @@ async function init() {
   renderAll();
   renderLinkedInAccountBar(stored.lastSyncedAt);
   setupEventListeners();
+  initSettingsTab(stored);
 
   // Listen for conversation updates from content script (via background)
   chrome.runtime.onMessage.addListener((msg) => {
@@ -69,6 +73,11 @@ async function init() {
     if (changes.outreachAuth) {
       outreachAuth = changes.outreachAuth.newValue;
       renderOutreachTab();
+    }
+    if (changes.linkedInOAuth || changes.linkedInProfile) {
+      const oAuth = changes.linkedInOAuth?.newValue;
+      const profile = changes.linkedInProfile?.newValue;
+      if (oAuth && profile) renderOAuthConnected(profile);
     }
   });
 }
@@ -865,15 +874,24 @@ async function syncLinkedIn(source = 'linkedin') {
     if (!result?.ok) {
       if (result?.error === 'NOT_LOGGED_IN') {
         showToast('Please log into LinkedIn in your browser first', 'error');
-        // Open LinkedIn so user can log in
         chrome.runtime.sendMessage({ type: 'OPEN_LINKEDIN' });
       } else {
-        showToast('Sync failed: ' + (result?.error || 'Unknown error'), 'error');
+        // Voyager failed — fall back to Plan B passive mode
+        const passiveEl = document.getElementById('li-passive-mode');
+        passiveEl?.classList.remove('hidden');
+        const badge = document.getElementById('sync-method-badge');
+        if (badge) { badge.textContent = 'Plan B'; badge.style.background = '#fef3c7'; badge.style.color = '#b45309'; }
+        showToast('Voyager unavailable — browse LinkedIn inbox to sync passively', 'error');
       }
       setLoading(false);
       isSyncing = false;
       return;
     }
+
+    // Success — hide passive notice, update badge
+    document.getElementById('li-passive-mode')?.classList.add('hidden');
+    const badge = document.getElementById('sync-method-badge');
+    if (badge) { badge.textContent = 'Plan A'; badge.style.background = ''; badge.style.color = ''; }
 
     const count = result.count || 0;
     showToast(`Imported ${count} conversation${count !== 1 ? 's' : ''}`, 'success');
@@ -1024,6 +1042,225 @@ function setupEventListeners() {
   document.getElementById('btn-open-salesnav').addEventListener('click', () => {
     chrome.runtime.sendMessage({ type: 'OPEN_SALES_NAV' });
   });
+}
+
+// ─── Settings tab ────────────────────────────────────────────────────────────
+
+function initSettingsTab(stored) {
+  // Populate redirect URI field
+  const redirectInput = document.getElementById('li-redirect-uri');
+  if (redirectInput) {
+    redirectInput.value = `https://${chrome.runtime.id}.chromiumapp.org/linkedin`;
+  }
+
+  // Passive sync toggle
+  const passiveToggle = document.getElementById('toggle-passive');
+  if (passiveToggle) {
+    passiveToggle.checked = stored.passiveSyncEnabled !== false; // default on
+    passiveToggle.addEventListener('change', () => {
+      chrome.storage.local.set({ passiveSyncEnabled: passiveToggle.checked });
+      updatePlanBStatus(passiveToggle.checked);
+    });
+    updatePlanBStatus(passiveToggle.checked !== false);
+  }
+
+  // Render Plan C state from stored OAuth
+  if (stored.linkedInOAuth && stored.linkedInProfile) {
+    renderOAuthConnected(stored.linkedInProfile);
+  }
+
+  // Copy redirect URI button
+  document.getElementById('btn-copy-redirect')?.addEventListener('click', () => {
+    const val = document.getElementById('li-redirect-uri')?.value;
+    if (val) {
+      navigator.clipboard.writeText(val).then(() => showToast('Redirect URI copied', 'success'));
+    }
+  });
+
+  // Plan A: Test Voyager connection
+  document.getElementById('btn-test-voyager')?.addEventListener('click', testVoyagerConnection);
+
+  // Plan C: OAuth connect
+  document.getElementById('btn-li-oauth-connect')?.addEventListener('click', connectLinkedInOAuth);
+
+  // Plan C: Complete exchange (after user enters client secret)
+  document.getElementById('btn-li-oauth-exchange')?.addEventListener('click', exchangeLinkedInOAuth);
+
+  // Plan C: Disconnect
+  document.getElementById('btn-li-oauth-disconnect')?.addEventListener('click', disconnectLinkedInOAuth);
+}
+
+function updatePlanBStatus(enabled) {
+  const statusEl = document.getElementById('plan-b-status');
+  if (!statusEl) return;
+  if (enabled) {
+    statusEl.textContent = 'Active';
+    statusEl.className = 'plan-status';
+  } else {
+    statusEl.textContent = 'Disabled';
+    statusEl.className = 'plan-status inactive';
+  }
+}
+
+async function testVoyagerConnection() {
+  const btn = document.getElementById('btn-test-voyager');
+  const resultEl = document.getElementById('voyager-test-result');
+  if (!btn || !resultEl) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Testing…';
+  resultEl.className = 'settings-result hidden';
+
+  try {
+    const result = await chrome.runtime.sendMessage({ type: 'FETCH_LINKEDIN_MESSAGES', source: 'linkedin' });
+    if (result?.ok) {
+      resultEl.className = 'settings-result success';
+      resultEl.textContent = `Connected! ${result.count || 0} conversation(s) fetched via Voyager API.`;
+      document.getElementById('plan-a-status').textContent = 'Active';
+    } else {
+      resultEl.className = 'settings-result error';
+      const errMsg = result?.error || 'Unknown error';
+      resultEl.textContent = errMsg === 'NOT_LOGGED_IN'
+        ? 'Not logged into LinkedIn. Open LinkedIn in your browser and log in first.'
+        : `Voyager unavailable: ${errMsg}`;
+      document.getElementById('plan-a-status').textContent = 'Unavailable';
+    }
+  } catch (err) {
+    resultEl.className = 'settings-result error';
+    resultEl.textContent = 'Error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Test Connection';
+  }
+}
+
+// Pending OAuth state (between Connect click and Exchange click)
+let _pendingOAuthCode = null;
+let _pendingRedirectUri = null;
+
+async function connectLinkedInOAuth() {
+  const btn = document.getElementById('btn-li-oauth-connect');
+  const clientId = document.getElementById('li-oauth-client-id')?.value?.trim();
+  const errorEl = document.getElementById('li-oauth-error');
+
+  if (!clientId) {
+    showOAuthError('Please enter your LinkedIn App Client ID.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Opening LinkedIn…';
+  errorEl?.classList.add('hidden');
+
+  try {
+    const result = await chrome.runtime.sendMessage({ type: 'LINKEDIN_OAUTH_CONNECT', clientId });
+
+    if (result?.requiresSecret) {
+      // Step 1 done — show exchange panel
+      _pendingOAuthCode = result.code;
+      _pendingRedirectUri = result.redirectUri;
+      document.getElementById('li-oauth-exchange')?.classList.remove('hidden');
+      btn.textContent = 'Re-authorize';
+    } else if (result?.ok) {
+      renderOAuthConnected(result.profile);
+      showToast('LinkedIn connected!', 'success');
+    } else {
+      showOAuthError(result?.error || 'OAuth failed');
+    }
+  } catch (err) {
+    showOAuthError(err.message);
+  } finally {
+    btn.disabled = false;
+    if (!_pendingOAuthCode) btn.textContent = 'Connect with LinkedIn';
+  }
+}
+
+async function exchangeLinkedInOAuth() {
+  const btn = document.getElementById('btn-li-oauth-exchange');
+  const clientId = document.getElementById('li-oauth-client-id')?.value?.trim();
+  const clientSecret = document.getElementById('li-oauth-client-secret')?.value?.trim();
+
+  if (!clientSecret) {
+    showOAuthError('Enter your LinkedIn App Client Secret to complete the connection.');
+    return;
+  }
+  if (!_pendingOAuthCode) {
+    showOAuthError('No pending authorization code. Click "Connect with LinkedIn" first.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: 'LINKEDIN_OAUTH_EXCHANGE',
+      clientId,
+      clientSecret,
+      code: _pendingOAuthCode,
+      redirectUri: _pendingRedirectUri,
+    });
+
+    if (result?.ok) {
+      _pendingOAuthCode = null;
+      _pendingRedirectUri = null;
+      renderOAuthConnected(result.profile);
+      showToast('LinkedIn API connected!', 'success');
+    } else {
+      showOAuthError(result?.error || 'Exchange failed');
+    }
+  } catch (err) {
+    showOAuthError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Complete Connection';
+  }
+}
+
+async function disconnectLinkedInOAuth() {
+  await chrome.runtime.sendMessage({ type: 'LINKEDIN_OAUTH_DISCONNECT' });
+  document.getElementById('li-oauth-connected')?.classList.add('hidden');
+  document.getElementById('li-oauth-disconnected')?.classList.remove('hidden');
+  document.getElementById('li-oauth-exchange')?.classList.add('hidden');
+  document.getElementById('plan-c-status').textContent = 'Not connected';
+  document.getElementById('plan-c-status').dataset.connected = 'false';
+  _pendingOAuthCode = null;
+  _pendingRedirectUri = null;
+  showToast('LinkedIn API disconnected', '');
+}
+
+function renderOAuthConnected(profile) {
+  document.getElementById('li-oauth-disconnected')?.classList.add('hidden');
+  document.getElementById('li-oauth-connected')?.classList.remove('hidden');
+
+  const nameEl = document.getElementById('oauth-name');
+  const emailEl = document.getElementById('oauth-email');
+  const avatarEl = document.getElementById('oauth-avatar');
+  const statusEl = document.getElementById('plan-c-status');
+
+  if (nameEl) nameEl.textContent = profile?.name || 'LinkedIn User';
+  if (emailEl) emailEl.textContent = profile?.email || '';
+  if (statusEl) { statusEl.textContent = 'Connected'; statusEl.dataset.connected = 'true'; }
+
+  if (avatarEl) {
+    avatarEl.innerHTML = '';
+    if (profile?.avatarUrl) {
+      const img = document.createElement('img');
+      img.src = profile.avatarUrl;
+      img.alt = profile.name || '';
+      img.onerror = () => { avatarEl.textContent = getInitials(profile.name); };
+      avatarEl.appendChild(img);
+    } else {
+      avatarEl.textContent = getInitials(profile?.name);
+    }
+  }
+}
+
+function showOAuthError(msg) {
+  const el = document.getElementById('li-oauth-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
 }
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
