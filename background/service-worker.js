@@ -50,9 +50,22 @@ async function handleMessage(message, sender, sendResponse) {
 
       case 'SYNC_CONVERSATIONS': {
         await mergeConversations(message.conversations);
-        // Broadcast to sidepanel
         chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
         sendResponse({ ok: true });
+        break;
+      }
+
+      // Sidepanel asks background to fetch all LinkedIn messages via the
+      // content script (which has access to the user's LinkedIn session cookies)
+      case 'FETCH_LINKEDIN_MESSAGES': {
+        const result = await fetchLinkedInMessages(message.source || 'linkedin');
+        sendResponse(result);
+        break;
+      }
+
+      case 'FETCH_LINKEDIN_PROFILE': {
+        const profile = await fetchLinkedInProfile();
+        sendResponse({ ok: true, profile });
         break;
       }
 
@@ -86,6 +99,78 @@ async function handleMessage(message, sender, sendResponse) {
   } catch (err) {
     sendResponse({ ok: false, error: err.message });
   }
+}
+
+// ─── LinkedIn message fetching via content script ─────────────────────────
+
+async function getOrOpenLinkedInTab(url) {
+  const tabs = await chrome.tabs.query({});
+  // Prefer a tab that's already on the right page
+  let tab = tabs.find(t => t.url?.includes(url.split('linkedin.com')[1]));
+  // Otherwise any LinkedIn tab
+  if (!tab) tab = tabs.find(t => t.url?.includes('linkedin.com'));
+  if (tab) return tab;
+  // Open a new one and wait for it
+  const newTab = await chrome.tabs.create({ url });
+  await waitForTabLoad(newTab.id);
+  return newTab;
+}
+
+async function pingTab(tabId) {
+  try {
+    const r = await chrome.tabs.sendMessage(tabId, { type: 'PING' });
+    return r?.ok === true;
+  } catch { return false; }
+}
+
+async function fetchLinkedInMessages(source) {
+  const targetUrl = source === 'sales_nav'
+    ? 'https://www.linkedin.com/sales/inbox/'
+    : 'https://www.linkedin.com/messaging/';
+
+  let tab;
+  try {
+    tab = await getOrOpenLinkedInTab(targetUrl);
+  } catch (err) {
+    return { ok: false, error: 'Could not open LinkedIn: ' + err.message };
+  }
+
+  // Make sure content script is running
+  const alive = await pingTab(tab.id);
+  if (!alive) {
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/interceptor.js'], world: 'MAIN' });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/content.js'] });
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content/content.css'] });
+      await new Promise(r => setTimeout(r, 1000));
+    } catch { /* scripting may fail on restricted URLs */ }
+  }
+
+  const msgType = source === 'sales_nav' ? 'FETCH_SALESNAV_CONVERSATIONS' : 'FETCH_VOYAGER_CONVERSATIONS';
+
+  try {
+    const result = await chrome.tabs.sendMessage(tab.id, { type: msgType, count: 50, start: 0 });
+    if (!result?.ok) return result || { ok: false, error: 'No response from content script' };
+
+    // Merge into storage
+    if (result.conversations?.length > 0) {
+      await mergeConversations(result.conversations);
+      chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
+    }
+    return { ok: true, count: result.conversations?.length || 0, total: result.total };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+async function fetchLinkedInProfile() {
+  const tabs = await chrome.tabs.query({});
+  const tab = tabs.find(t => t.url?.includes('linkedin.com'));
+  if (!tab) return null;
+  try {
+    const result = await chrome.tabs.sendMessage(tab.id, { type: 'FETCH_VOYAGER_PROFILE' });
+    return result || null;
+  } catch { return null; }
 }
 
 async function openOrFocusTab(url) {

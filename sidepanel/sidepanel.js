@@ -23,6 +23,8 @@ let outreachAuth = null;
 let outreachSequences = [];
 let pendingSteps = [];
 let openSequenceIds = new Set();
+let linkedInProfile = null;
+let isSyncing = false;
 
 const LABEL_COLORS = [
   '#0A66C2', '#6366f1', '#8b5cf6', '#ec4899',
@@ -34,13 +36,14 @@ const LABEL_COLORS = [
 // ─── Init ───────────────────────────────────────────────────────────────────
 
 async function init() {
-  [conversations, labels, outreachAuth] = await Promise.all([
-    getConversations(),
-    getLabels(),
-    getOutreachAuth(),
-  ]);
+  const stored = await chrome.storage.local.get(['conversations', 'labels', 'outreachAuth', 'linkedInProfile', 'lastSyncedAt']);
+  conversations = stored.conversations || [];
+  labels = stored.labels || [];
+  outreachAuth = stored.outreachAuth || null;
+  linkedInProfile = stored.linkedInProfile || null;
 
   renderAll();
+  renderLinkedInAccountBar(stored.lastSyncedAt);
   setupEventListeners();
 
   // Listen for conversation updates from content script (via background)
@@ -799,6 +802,109 @@ async function executeOutreachStep(task, btn, card) {
 
 const LINKEDIN_URL = 'https://www.linkedin.com/messaging/';
 
+// ─── LinkedIn Account Bar ─────────────────────────────────────────────────
+
+function renderLinkedInAccountBar(lastSyncedAt) {
+  const notSynced = document.getElementById('li-not-synced');
+  const synced = document.getElementById('li-synced');
+  const nameEl = document.getElementById('li-account-name');
+  const statusEl = document.getElementById('li-sync-status');
+  const avatarEl = document.getElementById('li-avatar');
+
+  if (linkedInProfile || conversations.length > 0) {
+    notSynced.classList.add('hidden');
+    synced.classList.remove('hidden');
+
+    const name = linkedInProfile?.name || 'LinkedIn Account';
+    nameEl.textContent = name;
+
+    if (lastSyncedAt) {
+      const mins = Math.round((Date.now() - lastSyncedAt) / 60000);
+      statusEl.textContent = mins < 1 ? 'Synced just now' : `Synced ${mins}m ago · ${conversations.length} conversations`;
+    } else {
+      statusEl.textContent = `${conversations.length} conversations`;
+    }
+
+    // Avatar
+    avatarEl.innerHTML = '';
+    if (linkedInProfile?.avatarUrl) {
+      const img = document.createElement('img');
+      img.src = linkedInProfile.avatarUrl;
+      img.alt = name;
+      img.onerror = () => { avatarEl.textContent = getInitials(name); };
+      avatarEl.appendChild(img);
+    } else {
+      avatarEl.textContent = getInitials(name);
+    }
+  } else {
+    notSynced.classList.remove('hidden');
+    synced.classList.add('hidden');
+  }
+}
+
+async function syncLinkedIn(source = 'linkedin') {
+  if (isSyncing) return;
+  isSyncing = true;
+
+  const syncBtn = document.getElementById('btn-li-sync');
+  const resyncBtn = document.getElementById('btn-li-resync');
+  const statusEl = document.getElementById('li-sync-status');
+
+  const setLoading = (loading) => {
+    if (syncBtn) { syncBtn.disabled = loading; syncBtn.textContent = loading ? 'Importing…' : 'Import'; }
+    if (resyncBtn) resyncBtn.classList.toggle('spinning', loading);
+    if (statusEl && loading) statusEl.textContent = 'Syncing…';
+  };
+
+  setLoading(true);
+
+  try {
+    // Fetch messages
+    const result = await chrome.runtime.sendMessage({ type: 'FETCH_LINKEDIN_MESSAGES', source });
+
+    if (!result?.ok) {
+      if (result?.error === 'NOT_LOGGED_IN') {
+        showToast('Please log into LinkedIn in your browser first', 'error');
+        // Open LinkedIn so user can log in
+        chrome.runtime.sendMessage({ type: 'OPEN_LINKEDIN' });
+      } else {
+        showToast('Sync failed: ' + (result?.error || 'Unknown error'), 'error');
+      }
+      setLoading(false);
+      isSyncing = false;
+      return;
+    }
+
+    const count = result.count || 0;
+    showToast(`Imported ${count} conversation${count !== 1 ? 's' : ''}`, 'success');
+
+    // Reload conversations from storage
+    conversations = await getConversations();
+
+    // Fetch profile if not already stored
+    if (!linkedInProfile) {
+      const profileResult = await chrome.runtime.sendMessage({ type: 'FETCH_LINKEDIN_PROFILE' });
+      if (profileResult?.profile) {
+        linkedInProfile = profileResult.profile;
+        await chrome.storage.local.set({ linkedInProfile });
+      }
+    }
+
+    const now = Date.now();
+    await chrome.storage.local.set({ lastSyncedAt: now });
+
+    renderLinkedInAccountBar(now);
+    renderConversationList();
+    renderFilterChips();
+
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    setLoading(false);
+    isSyncing = false;
+  }
+}
+
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
 async function findLinkedInTab() {
@@ -880,7 +986,11 @@ function setupEventListeners() {
     renderConversationList();
   });
 
-  // Sync
+  // LinkedIn sync buttons
+  document.getElementById('btn-li-sync').addEventListener('click', () => syncLinkedIn('linkedin'));
+  document.getElementById('btn-li-resync').addEventListener('click', () => syncLinkedIn('linkedin'));
+
+  // Header sync button
   document.getElementById('btn-sync').addEventListener('click', syncConversations);
 
   // Composer

@@ -168,6 +168,109 @@ body {
 
 .tab-content.hidden { display: none !important; }
 
+/* ── LinkedIn account bar ───────────────────────────────────────────────────── */
+.li-account-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.li-sync-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.li-sync-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #0A66C2;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.li-sync-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.li-sync-text strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.li-sync-text span {
+  font-size: 10px;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.li-account-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.li-account-row.hidden { display: none; }
+
+.li-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.li-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.li-account-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.li-account-info strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.li-account-info span {
+  font-size: 10px;
+  color: var(--text-light);
+}
+
 /* ── Search bar ────────────────────────────────────────────────────────────── */
 .search-bar {
   display: flex;
