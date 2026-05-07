@@ -1,9 +1,14 @@
 document.getElementById('btn-open-sidepanel').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab) {
+    // Must enable the panel for the tab before calling open()
+    await chrome.sidePanel.setOptions({
+      tabId: tab.id,
+      path: 'sidepanel/sidepanel.html',
+      enabled: true,
+    });
     await chrome.sidePanel.open({ tabId: tab.id });
   } else {
-    // No active tab — open LinkedIn first
     await chrome.tabs.create({ url: 'https://www.linkedin.com/messaging/' });
   }
   window.close();

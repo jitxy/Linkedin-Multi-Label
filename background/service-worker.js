@@ -43,7 +43,10 @@ async function handleMessage(message, sender, sendResponse) {
 
       case 'OPEN_SIDE_PANEL': {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab) await chrome.sidePanel.open({ tabId: tab.id });
+        if (tab) {
+          await chrome.sidePanel.setOptions({ tabId: tab.id, path: 'sidepanel/sidepanel.html', enabled: true });
+          await chrome.sidePanel.open({ tabId: tab.id });
+        }
         sendResponse({ ok: true });
         break;
       }

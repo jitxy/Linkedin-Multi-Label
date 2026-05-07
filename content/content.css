@@ -4,6 +4,9 @@
   display: inline-flex;
   align-items: center;
   margin: 4px 8px;
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto !important;
 }
 
 .lml-label-btn {

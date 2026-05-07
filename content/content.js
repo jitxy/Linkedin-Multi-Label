@@ -389,9 +389,10 @@
     btn.className = 'lml-label-btn';
     btn.innerHTML = '<span>🏷</span> Labels';
     btn.title = 'Assign labels to this conversation';
-    btn.addEventListener('click', e => { e.stopPropagation(); showLabelDropdown(btn); });
+    btn.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); showLabelDropdown(btn); });
     container.appendChild(btn);
-    anchor.appendChild(container);
+    // Insert AFTER the anchor, not inside it — avoids LinkedIn's click handlers on h1/banner
+    anchor.insertAdjacentElement('afterend', container);
   }
 
   async function showLabelDropdown(anchor) {
