@@ -8,20 +8,11 @@ const SALES_NAV_URL = 'https://www.linkedin.com/sales/inbox/';
 const OUTREACH_AUTH_URL = 'https://api.outreach.io/oauth/authorize';
 const OUTREACH_TOKEN_URL = 'https://api.outreach.io/oauth/token';
 
-// Open side panel when toolbar icon is clicked
-chrome.action.onClicked.addListener(async (tab) => {
-  await chrome.sidePanel.open({ tabId: tab.id });
-});
+// Open side panel when toolbar icon is clicked (works because no default_popup)
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 
-// Enable side panel on LinkedIn tabs automatically
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (!tab.url) return;
-  const isLinkedIn = tab.url.includes('linkedin.com');
-  await chrome.sidePanel.setOptions({
-    tabId,
-    enabled: isLinkedIn,
-  });
-});
+// Enable side panel globally — works on any tab so clicking the icon always works
+chrome.sidePanel.setOptions({ path: 'sidepanel/sidepanel.html', enabled: true }).catch(() => {});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender, sendResponse);
