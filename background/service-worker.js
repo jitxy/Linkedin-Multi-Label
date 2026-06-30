@@ -14,6 +14,26 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 // Enable side panel globally — works on any tab so clicking the icon always works
 chrome.sidePanel.setOptions({ path: 'sidepanel/sidepanel.html', enabled: true }).catch(() => {});
 
+// Set badge color once on startup
+chrome.action.setBadgeBackgroundColor({ color: '#e53e3e' }).catch(() => {});
+
+// Update unread badge whenever storage changes
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.conversations || changes.badgeEnabled) {
+    updateUnreadBadge();
+  }
+});
+
+async function updateUnreadBadge() {
+  const { conversations = [], badgeEnabled = true } = await chrome.storage.local.get(['conversations', 'badgeEnabled']);
+  if (!badgeEnabled) {
+    chrome.action.setBadgeText({ text: '' });
+    return;
+  }
+  const unread = conversations.filter(c => c.isUnread).length;
+  chrome.action.setBadgeText({ text: unread > 0 ? String(unread > 99 ? '99+' : unread) : '' });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender, sendResponse);
   return true; // keep channel open for async responses

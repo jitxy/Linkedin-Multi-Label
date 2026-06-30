@@ -38,7 +38,7 @@ const LABEL_COLORS = [
 async function init() {
   const stored = await chrome.storage.local.get([
     'conversations', 'labels', 'outreachAuth', 'linkedInProfile',
-    'lastSyncedAt', 'linkedInOAuth', 'passiveSyncEnabled',
+    'lastSyncedAt', 'linkedInOAuth', 'passiveSyncEnabled', 'badgeEnabled',
   ]);
   conversations = stored.conversations || [];
   labels = stored.labels || [];
@@ -1246,6 +1246,19 @@ function initSettingsTab(stored) {
   const redirectInput = document.getElementById('li-redirect-uri');
   if (redirectInput) {
     redirectInput.value = `https://${chrome.runtime.id}.chromiumapp.org/linkedin`;
+  }
+
+  // Unread badge toggle
+  const badgeToggle = document.getElementById('toggle-badge');
+  if (badgeToggle) {
+    badgeToggle.checked = stored.badgeEnabled !== false; // default on
+    badgeToggle.addEventListener('change', () => {
+      chrome.storage.local.set({ badgeEnabled: badgeToggle.checked });
+      const statusEl = document.getElementById('badge-status');
+      if (statusEl) statusEl.textContent = badgeToggle.checked ? 'On' : 'Off';
+    });
+    const statusEl = document.getElementById('badge-status');
+    if (statusEl) statusEl.textContent = badgeToggle.checked ? 'On' : 'Off';
   }
 
   // Passive sync toggle
