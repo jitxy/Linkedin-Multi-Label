@@ -69,10 +69,20 @@ async function handleMessage(message, sender, sendResponse) {
         break;
       }
 
-      // Sidepanel asks background to fetch all LinkedIn messages via the
-      // content script (which has access to the user's LinkedIn session cookies)
+      // Sidepanel asks background to fetch all LinkedIn messages.
+      // First tries direct cookie-based API call (most reliable),
+      // falls back to content script relay if direct fails.
       case 'FETCH_LINKEDIN_MESSAGES': {
-        const result = await fetchLinkedInMessages(message.source || 'linkedin');
+        const source = message.source || 'linkedin';
+        let result;
+        if (source === 'linkedin') {
+          result = await fetchLinkedInMessagesDirect();
+          if (!result.ok) {
+            result = await fetchLinkedInMessages(source);
+          }
+        } else {
+          result = await fetchLinkedInMessages(source);
+        }
         sendResponse(result);
         break;
       }
@@ -103,6 +113,10 @@ async function handleMessage(message, sender, sendResponse) {
       }
 
       case 'FETCH_CONVERSATION_MESSAGES': {
+        // Try direct cookie-based approach first
+        const directMsgs = await fetchConversationMessagesDirect(message.convId);
+        if (directMsgs.ok) { sendResponse(directMsgs); break; }
+        // Fall back to content script relay
         const tabs = await chrome.tabs.query({});
         const tab = tabs.find(t => t.url?.includes('linkedin.com'));
         if (!tab) { sendResponse({ ok: false, error: 'No LinkedIn tab open', messages: [] }); break; }
@@ -145,6 +159,273 @@ async function handleMessage(message, sender, sendResponse) {
   } catch (err) {
     sendResponse({ ok: false, error: err.message });
   }
+}
+
+// ─── LinkedIn direct API (service worker using chrome.cookies) ────────────
+
+async function getLinkedInCsrf() {
+  const cookie = await chrome.cookies.get({ url: 'https://www.linkedin.com', name: 'JSESSIONID' });
+  if (!cookie) return null;
+  // Strip surrounding quotes from cookie value
+  let val = cookie.value.trim();
+  if (val.startsWith('"')) val = val.split('"')[1] || val;
+  return val || null;
+}
+
+function buildVoyagerHeaders(csrfToken) {
+  return {
+    'csrf-token': csrfToken,
+    'x-restli-protocol-version': '2.0.0',
+    'accept': 'application/vnd.linkedin.normalized+json+2.1',
+    'x-li-lang': 'en_US',
+    'x-li-page-instance': 'urn:li:page:d_flagship3_messaging;',
+    'x-li-track': JSON.stringify({
+      clientVersion: '1.13.9', mpVersion: '1.13.9', osName: 'web',
+      timezoneOffset: 0, deviceFormFactor: 'DESKTOP', mpName: 'voyager-web',
+    }),
+  };
+}
+
+async function getLinkedInProfileId(csrfToken) {
+  try {
+    const res = await fetch('https://www.linkedin.com/voyager/api/me', {
+      credentials: 'include',
+      headers: buildVoyagerHeaders(csrfToken),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // Look for fsd_profile URN in included entities
+    const included = data.included || [];
+    for (const item of included) {
+      const urn = item.entityUrn || '';
+      if (urn.includes('fsd_profile:')) {
+        return urn.split('fsd_profile:')[1] || null;
+      }
+    }
+    // Fallback: miniProfile at top level
+    const mp = data.miniProfile || data;
+    const urn2 = mp.entityUrn || '';
+    if (urn2.includes('fsd_profile:')) return urn2.split('fsd_profile:')[1] || null;
+  } catch {}
+  return null;
+}
+
+function parseGraphQLConversations(data) {
+  const elements =
+    data?.data?.messengerConversationsByCategoryQuery?.elements ||
+    data?.data?.messengerConversationsBySearchCriteria?.elements ||
+    [];
+  const conversations = [];
+
+  for (const el of elements) {
+    try {
+      const id = el.backendUrn || el.entityUrn || '';
+      if (!id) continue;
+
+      // Find non-self participant
+      const participants = (el.conversationParticipants || []).filter(
+        p => p.participantType?.member?.distance !== 'SELF'
+      );
+
+      let name = 'Unknown', avatarUrl = '', profileUrl = '';
+      if (participants.length > 0) {
+        const member = participants[0]?.participantType?.member;
+        if (member) {
+          name = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown';
+          profileUrl = member.profileUrl || '';
+          // Extract avatar URL
+          const pic = member.profilePicture;
+          if (pic) {
+            const vi =
+              pic.displayImageReference?.vectorImage ||
+              pic.displayImage?.vectorImage ||
+              pic['com.linkedin.common.VectorImage'] ||
+              pic;
+            const arts = vi?.artifacts || [];
+            if (vi?.rootUrl && arts.length) {
+              const art = arts[arts.length - 1];
+              avatarUrl = vi.rootUrl + (art.fileIdentifyingUrlPathSegment || '');
+            }
+          }
+        }
+      } else if (el.groupChat) {
+        name = el.title || 'Group Chat';
+      }
+
+      const lastMsg = el.messages?.elements?.[0];
+      const snippet = (lastMsg?.body?.text || '').slice(0, 150);
+      const ts = el.lastActivityAt || lastMsg?.deliveredAt || 0;
+      const isUnread = (el.unreadMessageCount || 0) > 0;
+
+      conversations.push({
+        id,
+        name,
+        snippet,
+        timestamp: ts ? new Date(ts).toISOString() : '',
+        avatarUrl,
+        isUnread,
+        url: `https://www.linkedin.com/messaging/thread/${encodeURIComponent(id)}/`,
+        source: 'linkedin',
+        scrapedAt: Date.now(),
+      });
+    } catch {}
+  }
+  return conversations;
+}
+
+function parseVoyagerConversationsSW(data) {
+  const elements = data?.elements || data?.value?.elements || [];
+  const included = data?.included || [];
+  const entityMap = {};
+  for (const item of included) {
+    if (item.entityUrn) entityMap[item.entityUrn] = item;
+  }
+
+  const conversations = [];
+  for (const el of elements) {
+    try {
+      const urn = el.entityUrn || '';
+      const idMatch = urn.match(/(?:fs_conversation|msg_conversation):([^,)]+)/);
+      if (!idMatch) continue;
+      const id = idMatch[1];
+
+      // Participant name + avatar
+      let name = 'Unknown', avatarUrl = '';
+      const participantUrns = el['*participants'] || [];
+      for (const pUrn of participantUrns) {
+        const member = entityMap[pUrn];
+        if (!member) continue;
+        const mini = member.miniProfile || entityMap[member['*miniProfile']];
+        if (mini) {
+          const n = `${mini.firstName || ''} ${mini.lastName || ''}`.trim();
+          if (n) { name = n; avatarUrl = resolveAvatarSW(mini.picture, entityMap); break; }
+        }
+      }
+
+      const ts = el.lastActivityAt || el.lastActivityAtMilliseconds || 0;
+      const isUnread = !!(el.unread || (el.unreadCount || 0) > 0);
+
+      conversations.push({
+        id, name, snippet: '', timestamp: ts ? new Date(ts).toISOString() : '',
+        avatarUrl, isUnread,
+        url: `https://www.linkedin.com/messaging/thread/${encodeURIComponent(id)}/`,
+        source: 'linkedin', scrapedAt: Date.now(),
+      });
+    } catch {}
+  }
+  return conversations;
+}
+
+function resolveAvatarSW(pictureField, entityMap) {
+  if (!pictureField) return '';
+  const vec =
+    pictureField['com.linkedin.common.VectorImage'] ||
+    (typeof pictureField === 'string' ? entityMap[pictureField] : null) ||
+    pictureField;
+  if (vec?.rootUrl && Array.isArray(vec.artifacts) && vec.artifacts.length) {
+    const art = vec.artifacts[vec.artifacts.length - 1];
+    return vec.rootUrl + (art.fileIdentifyingUrlPathSegment || '');
+  }
+  return '';
+}
+
+async function fetchLinkedInMessagesDirect() {
+  const csrfToken = await getLinkedInCsrf();
+  if (!csrfToken) return { ok: false, error: 'NOT_LOGGED_IN' };
+
+  const headers = buildVoyagerHeaders(csrfToken);
+
+  // Get profile ID for mailboxUrn
+  const profileId = await getLinkedInProfileId(csrfToken);
+
+  // Try GraphQL (InLabels' proven approach)
+  if (profileId) {
+    try {
+      const graphqlUrl = `https://www.linkedin.com/voyager/api/voyagerMessagingGraphQL/graphql` +
+        `?queryId=messengerConversations.8656fb361a8ad0c178e8d3ff1a84ce26` +
+        `&variables=(query:(predicateUnions:List((conversationCategoryPredicate:(category:INBOX)))),count:20,mailboxUrn:urn%3Ali%3Afsd_profile%3A${profileId})`;
+
+      const gqlRes = await fetch(graphqlUrl, {
+        credentials: 'include',
+        headers: { ...headers, 'accept': 'application/json' },
+      });
+      if (gqlRes.ok) {
+        const gqlData = await gqlRes.json();
+        const conversations = parseGraphQLConversations(gqlData);
+        if (conversations.length > 0) {
+          await mergeConversations(conversations);
+          chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
+          return { ok: true, count: conversations.length };
+        }
+      }
+    } catch {}
+  }
+
+  // Fall back to REST API
+  const restUrls = [
+    'https://www.linkedin.com/voyager/api/messaging/conversations?count=50&q=fokusListByFolder',
+    'https://www.linkedin.com/voyager/api/messaging/conversations?count=50',
+  ];
+  for (const url of restUrls) {
+    try {
+      const res = await fetch(url, { credentials: 'include', headers });
+      if (res.ok) {
+        const data = await res.json();
+        const conversations = parseVoyagerConversationsSW(data);
+        if (conversations.length > 0) {
+          await mergeConversations(conversations);
+          chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
+          return { ok: true, count: conversations.length };
+        }
+      }
+    } catch {}
+  }
+
+  return { ok: false, error: 'API_UNAVAILABLE' };
+}
+
+async function fetchConversationMessagesDirect(convId) {
+  const csrfToken = await getLinkedInCsrf();
+  if (!csrfToken) return { ok: false, error: 'NOT_LOGGED_IN', messages: [] };
+
+  const headers = buildVoyagerHeaders(csrfToken);
+  const paths = [
+    `https://www.linkedin.com/voyager/api/messaging/conversations/${encodeURIComponent(convId)}/events?count=20&q=conversation`,
+    `https://www.linkedin.com/voyager/api/messaging/conversations/${encodeURIComponent('urn:li:msg_conversation:' + convId)}/events?count=20`,
+  ];
+
+  for (const url of paths) {
+    try {
+      const res = await fetch(url, { credentials: 'include', headers });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!data?.elements?.length && !data?.paging) continue;
+
+      const included = data.included || [];
+      const entityMap = {};
+      for (const item of included) { if (item.entityUrn) entityMap[item.entityUrn] = item; }
+
+      const messages = (data.elements || []).map(el => {
+        try {
+          const content =
+            el.eventContent?.['com.linkedin.messaging.event.content.MessageEvent'] ||
+            el.eventContent?.['com.linkedin.voyager.messaging.event.content.MessageEvent'] ||
+            el.eventContent;
+          const text = content?.attributedBody?.text || content?.body?.text || '';
+          if (!text) return null;
+          const senderUrn = el['*from'] || el.from?.entityUrn || '';
+          const sender = entityMap[senderUrn] || {};
+          const mini = sender.miniProfile || entityMap[sender['*miniProfile']] || {};
+          const senderName = `${mini.firstName || ''} ${mini.lastName || ''}`.trim() || 'Unknown';
+          const senderAvatar = resolveAvatarSW(mini.picture, entityMap);
+          return { id: el.entityUrn || '', text, sentAt: el.createdAt || 0, senderName, senderUrn, senderAvatar };
+        } catch { return null; }
+      }).filter(Boolean).reverse();
+
+      return { ok: true, messages };
+    } catch {}
+  }
+  return { ok: false, error: 'Not available', messages: [] };
 }
 
 // ─── LinkedIn message fetching via content script ─────────────────────────

@@ -9,10 +9,11 @@
     "activeTab",
     "sidePanel",
     "scripting",
-    "identity"
+    "identity",
+    "cookies"
   ],
   "host_permissions": [
-    "https://www.linkedin.com/*",
+    "*://*.linkedin.com/*",
     "https://api.outreach.io/*"
   ],
   "background": {
