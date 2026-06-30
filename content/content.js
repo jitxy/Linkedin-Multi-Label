@@ -255,6 +255,51 @@
     }
   }
 
+  // ─── Fetch conversation messages ─────────────────────────────────────────
+
+  async function fetchConversationMessages(convId) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) return { ok: false, error: 'NOT_LOGGED_IN', messages: [] };
+    try {
+      // Try multiple URL patterns for the events endpoint
+      const paths = [
+        `/voyager/api/messaging/conversations/${encodeURIComponent(convId)}/events?count=20&q=conversation`,
+        `/voyager/api/messaging/conversations/${encodeURIComponent('urn:li:msg_conversation:' + convId)}/events?count=20`,
+      ];
+      let data = null;
+      for (const path of paths) {
+        try {
+          data = await voyagerFetch(path, csrfToken);
+          if (data?.elements?.length > 0 || data?.paging) break;
+        } catch { }
+      }
+      if (!data) return { ok: false, error: 'Could not fetch messages', messages: [] };
+      const included = data.included || [];
+      const entityMap = {};
+      for (const item of included) { if (item.entityUrn) entityMap[item.entityUrn] = item; }
+      const elements = data.elements || [];
+      const messages = elements.map(el => {
+        try {
+          const content =
+            el.eventContent?.['com.linkedin.messaging.event.content.MessageEvent'] ||
+            el.eventContent?.['com.linkedin.voyager.messaging.event.content.MessageEvent'] ||
+            el.eventContent;
+          const text = content?.attributedBody?.text || content?.body?.text || '';
+          if (!text) return null;
+          const senderUrn = el['*from'] || el.from?.entityUrn || '';
+          const sender = entityMap[senderUrn] || {};
+          const mini = sender.miniProfile || entityMap[sender['*miniProfile']] || {};
+          const senderName = `${mini.firstName || ''} ${mini.lastName || ''}`.trim() || 'Unknown';
+          const senderAvatar = resolveAvatar(mini.picture, entityMap);
+          return { id: el.entityUrn || '', text, sentAt: el.createdAt || 0, senderName, senderUrn, senderAvatar };
+        } catch { return null; }
+      }).filter(Boolean).reverse();
+      return { ok: true, messages };
+    } catch (err) {
+      return { ok: false, error: err.message, messages: [] };
+    }
+  }
+
   // ─── Fetch current user profile ───────────────────────────────────────────
 
   async function fetchLinkedInProfile() {
@@ -495,6 +540,11 @@
       case 'GET_CURRENT_CONVERSATION_ID':
         sendResponse({ id: getCurrentConversationId() });
         return true;
+
+      case 'FETCH_CONVERSATION_MESSAGES': {
+        fetchConversationMessages(msg.convId).then(sendResponse);
+        return true;
+      }
 
       case 'PING':
         sendResponse({ ok: true });

@@ -121,25 +121,60 @@
       </div>
     </div>
 
-    <!-- Inline message composer -->
-    <div class="message-composer hidden" id="message-composer">
-      <div class="composer-header">
-        <span id="composer-name"></span>
-        <button class="icon-btn composer-close" id="composer-close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M18 6 6 18M6 6l12 12"/>
+    <!-- Conversation Detail View -->
+    <div id="conv-detail" class="conv-detail hidden">
+      <div class="detail-header">
+        <button class="icon-btn" id="btn-detail-back" title="Back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+        </button>
+        <div class="detail-avatar" id="detail-avatar"></div>
+        <div class="detail-info">
+          <a class="detail-name" id="detail-name" href="#" target="_blank"></a>
+          <span class="detail-company" id="detail-company"></span>
+        </div>
+        <button class="icon-btn" id="btn-detail-li" title="Open in LinkedIn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
           </svg>
         </button>
       </div>
-      <textarea id="composer-text" placeholder="Type a message…" rows="3"></textarea>
-      <div class="composer-actions">
-        <span class="composer-hint">Ctrl+Enter to send</span>
-        <button class="btn-primary" id="btn-send-message">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="m22 2-7 20-4-9-9-4 20-7z"/>
-          </svg>
-          Send
-        </button>
+
+      <div class="detail-note-wrap">
+        <input type="text" id="detail-note" class="detail-note-input" placeholder="Add note…" autocomplete="off">
+      </div>
+
+      <div class="message-thread" id="message-thread">
+        <div class="msg-loading" id="msg-loading">
+          <div class="spinner"></div>
+          <span>Loading messages…</span>
+        </div>
+        <div class="msg-empty hidden" id="msg-empty">
+          <p>No messages yet.</p>
+        </div>
+      </div>
+
+      <button class="btn-label-float" id="btn-label-float" title="Add / remove labels">+</button>
+
+      <div class="detail-composer">
+        <textarea id="detail-msg-input" placeholder="Send message" rows="2" autocomplete="off"></textarea>
+        <div class="detail-composer-row">
+          <div class="detail-composer-tools">
+            <button class="composer-tool-btn" title="Emoji" id="btn-emoji-placeholder">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+            </button>
+            <button class="composer-tool-btn" title="Attach file" id="btn-attach-placeholder">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
+          </div>
+          <button class="btn-primary" id="btn-detail-send">Send</button>
+        </div>
       </div>
     </div>
   </div>
@@ -349,6 +384,30 @@
       <span>Sales Nav</span>
     </button>
   </footer>
+
+  <!-- Label picker modal -->
+  <div id="label-modal" class="label-modal hidden">
+    <div class="label-modal-backdrop" id="label-modal-backdrop"></div>
+    <div class="label-modal-content">
+      <div class="label-modal-search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="label-modal-search" placeholder="Search" autocomplete="off">
+      </div>
+      <div class="label-modal-list" id="label-modal-list"></div>
+      <div class="label-modal-footer">
+        <button class="label-modal-create-btn" id="btn-modal-create-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+          Create new label
+        </button>
+        <button class="btn-primary" id="btn-modal-done">Done</button>
+      </div>
+    </div>
+  </div>
 
   <div class="toast hidden" id="toast"></div>
   <script src="sidepanel.js" type="module"></script>

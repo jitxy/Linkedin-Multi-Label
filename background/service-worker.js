@@ -82,6 +82,19 @@ async function handleMessage(message, sender, sendResponse) {
         break;
       }
 
+      case 'FETCH_CONVERSATION_MESSAGES': {
+        const tabs = await chrome.tabs.query({});
+        const tab = tabs.find(t => t.url?.includes('linkedin.com'));
+        if (!tab) { sendResponse({ ok: false, error: 'No LinkedIn tab open', messages: [] }); break; }
+        try {
+          const result = await chrome.tabs.sendMessage(tab.id, { type: 'FETCH_CONVERSATION_MESSAGES', convId: message.convId });
+          sendResponse(result || { ok: false, error: 'No response', messages: [] });
+        } catch (err) {
+          sendResponse({ ok: false, error: err.message, messages: [] });
+        }
+        break;
+      }
+
       case 'SEND_MESSAGE': {
         const result = await sendLinkedInMessage(message.conversationUrl, message.text);
         sendResponse(result);
