@@ -69,6 +69,10 @@ async function init() {
       renderConversationList();
       renderFilterChips();
       renderLabelsList();
+      if (detailConv) {
+        const updated = (changes.conversations?.newValue || conversations).find(c => c.id === detailConv.id);
+        if (updated) { detailConv = updated; renderDetailLabelChips(updated); renderLabelModalList(updated); }
+      }
     }
     if (changes.outreachAuth) {
       outreachAuth = changes.outreachAuth.newValue;
@@ -278,50 +282,208 @@ function buildConversationCard(conv) {
   return card;
 }
 
+// ─── Conversation detail view ─────────────────────────────────────────────────
+
+let detailConv = null;
+let detailNoteDebounce = null;
+let modalLabelSearch = '';
+
 function selectConversation(conv) {
   activeConversation = conv;
   renderConversationList();
-  openMessageComposer(conv);
+  openConversationDetail(conv);
 }
 
-function openMessageComposer(conv) {
-  const composer = document.getElementById('message-composer');
-  const nameEl = document.getElementById('composer-name');
-  const textarea = document.getElementById('composer-text');
+async function openConversationDetail(conv) {
+  detailConv = conv;
 
-  nameEl.textContent = `Message to ${conv.name}`;
-  textarea.value = '';
-  composer.classList.remove('hidden');
-  textarea.focus();
+  // Show the detail overlay
+  document.getElementById('conv-detail').classList.remove('hidden');
+
+  // Header
+  const avatarEl = document.getElementById('detail-avatar');
+  avatarEl.innerHTML = '';
+  if (conv.avatarUrl && !conv.avatarUrl.startsWith('data:')) {
+    const img = document.createElement('img');
+    img.src = conv.avatarUrl;
+    img.alt = conv.name;
+    img.onerror = () => { avatarEl.textContent = getInitials(conv.name); };
+    avatarEl.appendChild(img);
+  } else {
+    avatarEl.textContent = getInitials(conv.name);
+    avatarEl.style.background = stringToColor(conv.name);
+  }
+
+  const nameEl = document.getElementById('detail-name');
+  nameEl.textContent = conv.name;
+  nameEl.href = `https://www.linkedin.com/messaging/thread/${encodeURIComponent(conv.id)}/`;
+
+  document.getElementById('detail-company').textContent = conv.company || '';
+
+  // Note
+  const stored = await chrome.storage.local.get('notes');
+  const notes = stored.notes || {};
+  document.getElementById('detail-note').value = notes[conv.id] || '';
+
+  // Label chips
+  renderDetailLabelChips(conv);
+
+  // Messages
+  await loadConversationMessages(conv);
 }
 
-function closeMessageComposer() {
+function renderDetailLabelChips(conv) {
+  let chipsEl = document.getElementById('detail-label-chips');
+  if (!chipsEl) {
+    chipsEl = document.createElement('div');
+    chipsEl.id = 'detail-label-chips';
+    chipsEl.className = 'detail-label-chips';
+    const noteWrap = document.getElementById('detail-note-wrap') || document.querySelector('.detail-note-wrap');
+    if (noteWrap) noteWrap.after(chipsEl);
+  }
+  chipsEl.innerHTML = '';
+  const assigned = (conv.labels || []).map(id => labels.find(l => l.id === id)).filter(Boolean);
+  for (const label of assigned) {
+    const chip = document.createElement('span');
+    chip.className = 'detail-label-chip';
+    chip.style.background = label.color;
+    chip.textContent = label.name;
+    chip.title = 'Click to remove';
+    chip.addEventListener('click', async () => {
+      await removeLabel(conv.id, label.id);
+      const updated = conversations.find(c => c.id === conv.id);
+      if (updated) { detailConv = updated; renderDetailLabelChips(updated); }
+    });
+    chipsEl.appendChild(chip);
+  }
+}
+
+function closeConversationDetail() {
+  detailConv = null;
   activeConversation = null;
-  document.getElementById('message-composer').classList.add('hidden');
+  document.getElementById('conv-detail').classList.add('hidden');
+  document.getElementById('detail-msg-input').value = '';
   renderConversationList();
 }
 
+async function loadConversationMessages(conv) {
+  const thread = document.getElementById('message-thread');
+  const loadingEl = document.getElementById('msg-loading');
+  const emptyEl = document.getElementById('msg-empty');
+
+  // Clear previous messages (keep loading/empty els)
+  thread.querySelectorAll('.msg-date-sep, .msg-row').forEach(el => el.remove());
+  loadingEl.classList.remove('hidden');
+  emptyEl.classList.add('hidden');
+
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: 'FETCH_CONVERSATION_MESSAGES',
+      convId: conv.id,
+    });
+
+    loadingEl.classList.add('hidden');
+
+    if (!result?.ok || !result.messages?.length) {
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    renderMessageThread(result.messages);
+  } catch (err) {
+    loadingEl.classList.add('hidden');
+    emptyEl.classList.remove('hidden');
+  }
+}
+
+function renderMessageThread(messages) {
+  const thread = document.getElementById('message-thread');
+  thread.querySelectorAll('.msg-date-sep, .msg-row').forEach(el => el.remove());
+
+  const myName = linkedInProfile?.name || '';
+  let lastDateStr = '';
+
+  for (const msg of messages) {
+    const dateStr = formatDateSep(msg.sentAt);
+    if (dateStr !== lastDateStr) {
+      const sep = document.createElement('div');
+      sep.className = 'msg-date-sep';
+      sep.textContent = dateStr;
+      thread.appendChild(sep);
+      lastDateStr = dateStr;
+    }
+
+    const isSent = myName && msg.senderName && msg.senderName === myName;
+    const row = document.createElement('div');
+    row.className = `msg-row ${isSent ? 'sent' : 'received'}`;
+
+    // Avatar (only for received)
+    if (!isSent) {
+      const av = document.createElement('div');
+      av.className = 'msg-row-avatar';
+      if (msg.senderAvatar) {
+        const img = document.createElement('img');
+        img.src = msg.senderAvatar;
+        img.onerror = () => { av.textContent = getInitials(msg.senderName); };
+        av.appendChild(img);
+      } else {
+        av.textContent = getInitials(msg.senderName);
+      }
+      row.appendChild(av);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-bubble-wrap';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = msg.text;
+    wrap.appendChild(bubble);
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.textContent = formatMsgTime(msg.sentAt);
+    wrap.appendChild(meta);
+
+    row.appendChild(wrap);
+    thread.appendChild(row);
+  }
+
+  // Scroll to bottom
+  thread.scrollTop = thread.scrollHeight;
+}
+
 async function sendMessage() {
-  if (!activeConversation) return;
-  const textarea = document.getElementById('composer-text');
+  const conv = detailConv || activeConversation;
+  if (!conv) return;
+  const textarea = document.getElementById('detail-msg-input');
   const text = textarea.value.trim();
   if (!text) return;
 
-  const btn = document.getElementById('btn-send-message');
+  const btn = document.getElementById('btn-detail-send');
   btn.disabled = true;
   btn.textContent = 'Sending…';
 
   try {
     const result = await chrome.runtime.sendMessage({
       type: 'SEND_MESSAGE',
-      conversationUrl: activeConversation.url,
+      conversationUrl: conv.url,
       text,
     });
 
     if (result?.ok) {
       textarea.value = '';
       showToast('Message sent!', 'success');
-      closeMessageComposer();
+      // Optimistically add message to thread
+      renderMessageThread([{
+        id: 'tmp-' + Date.now(),
+        text,
+        sentAt: Date.now(),
+        senderName: linkedInProfile?.name || 'You',
+        senderUrn: '',
+        senderAvatar: '',
+      }].concat([]));
+      await loadConversationMessages(conv);
     } else {
       showToast(result?.error || 'Send failed', 'error');
     }
@@ -329,67 +491,73 @@ async function sendMessage() {
     showToast('Error: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg> Send`;
+    btn.textContent = 'Send';
   }
 }
 
-// Label assign dropdown (inline in sidepanel)
-function showLabelAssignDropdown(anchor, conv) {
-  document.querySelectorAll('.label-assign-dropdown').forEach(el => el.remove());
+// ─── Label modal ──────────────────────────────────────────────────────────────
 
-  const dropdown = document.createElement('div');
-  dropdown.className = 'label-assign-dropdown';
+function showLabelModal() {
+  const conv = detailConv;
+  if (!conv) return;
+  modalLabelSearch = '';
+  document.getElementById('label-modal-search').value = '';
+  renderLabelModalList(conv);
+  document.getElementById('label-modal').classList.remove('hidden');
+  document.getElementById('label-modal-search').focus();
+}
 
+function hideLabelModal() {
+  document.getElementById('label-modal').classList.add('hidden');
+}
+
+function renderLabelModalList(conv) {
+  const container = document.getElementById('label-modal-list');
+  container.innerHTML = '';
   const assigned = conv.labels || [];
+  const q = modalLabelSearch.toLowerCase();
+  const filtered = labels.filter(l => !q || l.name.toLowerCase().includes(q));
 
-  for (const label of labels) {
-    const item = document.createElement('div');
-    item.className = `label-assign-item${assigned.includes(label.id) ? ' assigned' : ''}`;
+  for (const label of filtered) {
+    const item = document.createElement('label');
+    item.className = 'label-modal-item';
 
-    const dot = document.createElement('span');
-    dot.className = 'label-assign-dot';
-    dot.style.background = label.color;
-
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = label.name;
-
-    if (assigned.includes(label.id)) {
-      const check = document.createElement('span');
-      check.style.marginLeft = 'auto';
-      check.style.color = '#22c55e';
-      check.textContent = '✓';
-      item.appendChild(dot);
-      item.appendChild(nameSpan);
-      item.appendChild(check);
-    } else {
-      item.appendChild(dot);
-      item.appendChild(nameSpan);
-    }
-
-    item.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      if (assigned.includes(label.id)) {
-        await removeLabel(conv.id, label.id);
-        showToast(`Removed "${label.name}"`, 'success');
-      } else {
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = assigned.includes(label.id);
+    cb.addEventListener('change', async () => {
+      if (cb.checked) {
         await assignLabel(conv.id, label.id);
-        showToast(`Added "${label.name}"`, 'success');
+      } else {
+        await removeLabel(conv.id, label.id);
       }
-      dropdown.remove();
+      const updated = conversations.find(c => c.id === conv.id);
+      if (updated) {
+        detailConv = updated;
+        renderDetailLabelChips(updated);
+      }
     });
 
-    dropdown.appendChild(item);
+    const dot = document.createElement('span');
+    dot.className = 'label-modal-dot';
+    dot.style.background = label.color;
+
+    const name = document.createElement('span');
+    name.className = 'label-modal-name';
+    name.textContent = label.name;
+
+    item.append(cb, dot, name);
+    container.appendChild(item);
   }
 
-  document.body.appendChild(dropdown);
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="padding:16px;text-align:center;font-size:13px;color:#888">No labels found</div>';
+  }
+}
 
-  const rect = anchor.getBoundingClientRect();
-  dropdown.style.top = `${rect.bottom + 4}px`;
-  dropdown.style.left = `${Math.max(4, rect.left - dropdown.offsetWidth + rect.width)}px`;
-
-  setTimeout(() => {
-    document.addEventListener('click', () => dropdown.remove(), { once: true });
-  }, 0);
+// Keep existing label dropdown for backward compat (will be unused)
+function showLabelAssignDropdown(anchor, conv) {
+  showLabelModal();
 }
 
 // ─── Labels tab ─────────────────────────────────────────────────────────────
@@ -1011,14 +1179,41 @@ function setupEventListeners() {
   // Header sync button
   document.getElementById('btn-sync').addEventListener('click', syncConversations);
 
-  // Composer
-  document.getElementById('composer-close').addEventListener('click', closeMessageComposer);
-  document.getElementById('btn-send-message').addEventListener('click', sendMessage);
-  document.getElementById('composer-text').addEventListener('keydown', (e) => {
+  // Detail view
+  document.getElementById('btn-detail-back').addEventListener('click', closeConversationDetail);
+  document.getElementById('btn-detail-send').addEventListener('click', sendMessage);
+  document.getElementById('btn-detail-li').addEventListener('click', () => {
+    if (detailConv?.url) chrome.tabs.create({ url: detailConv.url });
+  });
+  document.getElementById('detail-msg-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       sendMessage();
     }
+  });
+  document.getElementById('detail-note').addEventListener('input', (e) => {
+    clearTimeout(detailNoteDebounce);
+    detailNoteDebounce = setTimeout(async () => {
+      if (!detailConv) return;
+      const stored = await chrome.storage.local.get('notes');
+      const notes = stored.notes || {};
+      notes[detailConv.id] = e.target.value;
+      await chrome.storage.local.set({ notes });
+    }, 600);
+  });
+
+  // Label modal
+  document.getElementById('btn-label-float').addEventListener('click', showLabelModal);
+  document.getElementById('btn-modal-done').addEventListener('click', hideLabelModal);
+  document.getElementById('label-modal-backdrop').addEventListener('click', hideLabelModal);
+  document.getElementById('label-modal-search').addEventListener('input', (e) => {
+    modalLabelSearch = e.target.value;
+    if (detailConv) renderLabelModalList(detailConv);
+  });
+  document.getElementById('btn-modal-create-label').addEventListener('click', () => {
+    hideLabelModal();
+    switchTab('labels');
+    document.getElementById('btn-new-label')?.click();
   });
 
   // Labels
@@ -1294,6 +1489,23 @@ function stringToColor(str) {
   }
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#22c55e', '#0A66C2'];
   return colors[Math.abs(hash) % colors.length];
+}
+
+function formatDateSep(ts) {
+  if (!ts) return '';
+  const date = new Date(ts);
+  const now = new Date();
+  const diffDays = Math.floor((now - date) / 86400000);
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return date.toLocaleDateString(undefined, { weekday: 'long' });
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: diffDays > 365 ? 'numeric' : undefined });
+}
+
+function formatMsgTime(ts) {
+  if (!ts) return '';
+  const date = new Date(ts);
+  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
 function formatTime(timestamp) {
