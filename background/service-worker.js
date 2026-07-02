@@ -3,19 +3,55 @@ import { getConversations, setConversations, getOutreachAuth, setOutreachAuth } 
 const LINKEDIN_URL = 'https://www.linkedin.com/messaging/';
 const SALES_NAV_URL = 'https://www.linkedin.com/sales/inbox/';
 
-// Outreach OAuth config — user fills in their app credentials in Outreach settings
-// These are stored per-user in chrome.storage so they can enter their own app credentials
 const OUTREACH_AUTH_URL = 'https://api.outreach.io/oauth/authorize';
 const OUTREACH_TOKEN_URL = 'https://api.outreach.io/oauth/token';
 
-// Open side panel when toolbar icon is clicked (works because no default_popup)
+// ─── Startup ──────────────────────────────────────────────────────────────
+
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
-
-// Enable side panel globally — works on any tab so clicking the icon always works
 chrome.sidePanel.setOptions({ path: 'sidepanel/sidepanel.html', enabled: true }).catch(() => {});
-
-// Set badge color once on startup
 chrome.action.setBadgeBackgroundColor({ color: '#e53e3e' }).catch(() => {});
+
+// Auto-sync on startup and install
+chrome.runtime.onStartup.addListener(autoSync);
+chrome.runtime.onInstalled.addListener(autoSync);
+
+// Re-sync when LinkedIn JSESSIONID cookie changes (login/logout)
+chrome.cookies.onChanged.addListener(({ cookie, removed }) => {
+  if (cookie.domain.includes('linkedin.com') && cookie.name === 'JSESSIONID') {
+    if (!removed) autoSync();
+  }
+});
+
+// Alarm for periodic background sync (every 2 minutes)
+chrome.alarms.create('lml-sync', { periodInMinutes: 2 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'lml-sync') autoSync();
+});
+
+// Track connected side panels for live updates
+let sidePanelPort = null;
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === 'sidepanel') {
+    sidePanelPort = port;
+    port.onDisconnect.addListener(() => { sidePanelPort = null; });
+    // Immediately sync when panel opens
+    autoSync();
+  }
+});
+
+let isSyncing = false;
+async function autoSync() {
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    const result = await fetchLinkedInMessagesDirect();
+    if (result.ok) {
+      updateUnreadBadge();
+    }
+  } catch {}
+  isSyncing = false;
+}
 
 // Update unread badge whenever storage changes
 chrome.storage.onChanged.addListener((changes) => {
@@ -164,48 +200,48 @@ async function handleMessage(message, sender, sendResponse) {
 // ─── LinkedIn direct API (service worker using chrome.cookies) ────────────
 
 async function getLinkedInCsrf() {
-  const cookie = await chrome.cookies.get({ url: 'https://www.linkedin.com', name: 'JSESSIONID' });
+  // chrome.cookies.get can read httpOnly cookies — document.cookie cannot
+  const cookie = await chrome.cookies.get({ url: 'https://www.linkedin.com/', name: 'JSESSIONID' });
   if (!cookie) return null;
-  // Strip surrounding quotes from cookie value
+  // Strip surrounding quotes (LinkedIn stores value as "ajax:TOKEN" with quotes)
   let val = cookie.value.trim();
   if (val.startsWith('"')) val = val.split('"')[1] || val;
   return val || null;
 }
 
-function buildVoyagerHeaders(csrfToken) {
+// InLabels only sends these two headers to LinkedIn GraphQL — no credentials: 'include'
+// The JSESSIONID value itself IS the session auth; sending it as Csrf-Token is sufficient
+function buildGraphQLHeaders(csrfToken) {
+  return {
+    'Csrf-Token': csrfToken,
+    'Client-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
+
+function buildRestHeaders(csrfToken) {
   return {
     'csrf-token': csrfToken,
     'x-restli-protocol-version': '2.0.0',
     'accept': 'application/vnd.linkedin.normalized+json+2.1',
-    'x-li-lang': 'en_US',
-    'x-li-page-instance': 'urn:li:page:d_flagship3_messaging;',
-    'x-li-track': JSON.stringify({
-      clientVersion: '1.13.9', mpVersion: '1.13.9', osName: 'web',
-      timezoneOffset: 0, deviceFormFactor: 'DESKTOP', mpName: 'voyager-web',
-    }),
   };
 }
 
 async function getLinkedInProfileId(csrfToken) {
+  // Try GraphQL identity endpoint first (more reliable)
   try {
-    const res = await fetch('https://www.linkedin.com/voyager/api/me', {
-      credentials: 'include',
-      headers: buildVoyagerHeaders(csrfToken),
-    });
+    const res = await fetch(
+      'https://www.linkedin.com/voyager/api/me',
+      { headers: buildRestHeaders(csrfToken) }
+    );
     if (!res.ok) return null;
     const data = await res.json();
-    // Look for fsd_profile URN in included entities
     const included = data.included || [];
     for (const item of included) {
       const urn = item.entityUrn || '';
-      if (urn.includes('fsd_profile:')) {
-        return urn.split('fsd_profile:')[1] || null;
-      }
+      if (urn.includes('fsd_profile:')) return urn.split('fsd_profile:')[1];
     }
-    // Fallback: miniProfile at top level
-    const mp = data.miniProfile || data;
-    const urn2 = mp.entityUrn || '';
-    if (urn2.includes('fsd_profile:')) return urn2.split('fsd_profile:')[1] || null;
+    const mp = data.miniProfile || {};
+    if (mp.entityUrn?.includes('fsd_profile:')) return mp.entityUrn.split('fsd_profile:')[1];
   } catch {}
   return null;
 }
@@ -333,22 +369,18 @@ async function fetchLinkedInMessagesDirect() {
   const csrfToken = await getLinkedInCsrf();
   if (!csrfToken) return { ok: false, error: 'NOT_LOGGED_IN' };
 
-  const headers = buildVoyagerHeaders(csrfToken);
-
   // Get profile ID for mailboxUrn
   const profileId = await getLinkedInProfileId(csrfToken);
 
-  // Try GraphQL (InLabels' proven approach)
+  // Try GraphQL — InLabels approach: send Csrf-Token header only, no credentials:include
+  // JSESSIONID value sent as header IS the session token; CORS bypass via host_permissions
   if (profileId) {
     try {
       const graphqlUrl = `https://www.linkedin.com/voyager/api/voyagerMessagingGraphQL/graphql` +
         `?queryId=messengerConversations.8656fb361a8ad0c178e8d3ff1a84ce26` +
         `&variables=(query:(predicateUnions:List((conversationCategoryPredicate:(category:INBOX)))),count:20,mailboxUrn:urn%3Ali%3Afsd_profile%3A${profileId})`;
 
-      const gqlRes = await fetch(graphqlUrl, {
-        credentials: 'include',
-        headers: { ...headers, 'accept': 'application/json' },
-      });
+      const gqlRes = await fetch(graphqlUrl, { headers: buildGraphQLHeaders(csrfToken) });
       if (gqlRes.ok) {
         const gqlData = await gqlRes.json();
         const conversations = parseGraphQLConversations(gqlData);
@@ -356,6 +388,24 @@ async function fetchLinkedInMessagesDirect() {
           await mergeConversations(conversations);
           chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
           return { ok: true, count: conversations.length };
+        }
+      }
+    } catch {}
+
+    // Try second GraphQL query ID
+    try {
+      const graphqlUrl2 = `https://www.linkedin.com/voyager/api/voyagerMessagingGraphQL/graphql` +
+        `?queryId=messengerConversations.92f86fde05044b524f36d62da0497760` +
+        `&variables=(categories:List(INBOX),count:20,firstDegreeConnections:false,mailboxUrn:urn%3Ali%3Afsd_profile%3A${profileId})`;
+
+      const gqlRes2 = await fetch(graphqlUrl2, { headers: buildGraphQLHeaders(csrfToken) });
+      if (gqlRes2.ok) {
+        const gqlData2 = await gqlRes2.json();
+        const convs2 = parseGraphQLConversations(gqlData2);
+        if (convs2.length > 0) {
+          await mergeConversations(convs2);
+          chrome.runtime.sendMessage({ type: 'CONVERSATIONS_UPDATED' }).catch(() => {});
+          return { ok: true, count: convs2.length };
         }
       }
     } catch {}
@@ -368,7 +418,7 @@ async function fetchLinkedInMessagesDirect() {
   ];
   for (const url of restUrls) {
     try {
-      const res = await fetch(url, { credentials: 'include', headers });
+      const res = await fetch(url, { headers: buildRestHeaders(csrfToken) });
       if (res.ok) {
         const data = await res.json();
         const conversations = parseVoyagerConversationsSW(data);
@@ -388,7 +438,7 @@ async function fetchConversationMessagesDirect(convId) {
   const csrfToken = await getLinkedInCsrf();
   if (!csrfToken) return { ok: false, error: 'NOT_LOGGED_IN', messages: [] };
 
-  const headers = buildVoyagerHeaders(csrfToken);
+  const headers = buildRestHeaders(csrfToken);
   const paths = [
     `https://www.linkedin.com/voyager/api/messaging/conversations/${encodeURIComponent(convId)}/events?count=20&q=conversation`,
     `https://www.linkedin.com/voyager/api/messaging/conversations/${encodeURIComponent('urn:li:msg_conversation:' + convId)}/events?count=20`,
@@ -396,7 +446,7 @@ async function fetchConversationMessagesDirect(convId) {
 
   for (const url of paths) {
     try {
-      const res = await fetch(url, { credentials: 'include', headers });
+      const res = await fetch(url, { headers });
       if (!res.ok) continue;
       const data = await res.json();
       if (!data?.elements?.length && !data?.paging) continue;

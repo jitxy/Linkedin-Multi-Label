@@ -10,7 +10,8 @@
     "sidePanel",
     "scripting",
     "identity",
-    "cookies"
+    "cookies",
+    "alarms"
   ],
   "host_permissions": [
     "*://*.linkedin.com/*",

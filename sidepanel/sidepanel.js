@@ -50,7 +50,11 @@ async function init() {
   setupEventListeners();
   initSettingsTab(stored);
 
-  // Listen for conversation updates from content script (via background)
+  // Connect to background so it knows the panel is open (triggers auto-sync)
+  const port = chrome.runtime.connect({ name: 'sidepanel' });
+  port.onDisconnect.addListener(() => {});
+
+  // Listen for conversation updates pushed from background
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'CONVERSATIONS_UPDATED') {
       reloadConversations();
