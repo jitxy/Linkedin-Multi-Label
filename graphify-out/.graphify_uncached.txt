@@ -1,0 +1,5 @@
+/home/user/Linkedin-Multi-Label/popup/popup.html
+/home/user/Linkedin-Multi-Label/sidepanel/sidepanel.html
+/home/user/Linkedin-Multi-Label/icons/icon128.png
+/home/user/Linkedin-Multi-Label/icons/icon16.png
+/home/user/Linkedin-Multi-Label/icons/icon48.png
