@@ -1,7 +1,63 @@
 {
   "directed": false,
   "multigraph": false,
-  "graph": {},
+  "graph": {
+    "hyperedges": [
+      {
+        "id": "linkedin_sync_strategy_fallback_chain",
+        "label": "LinkedIn Sync Strategy: Three-Tier Fallback Chain (Plan A \u2192 B \u2192 C)",
+        "nodes": [
+          "sidepanel_sidepanel_sidepanel_plan_a_session_sync",
+          "sidepanel_sidepanel_sidepanel_plan_b_passive_sync",
+          "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth"
+        ],
+        "relation": "implement",
+        "confidence": "INFERRED",
+        "confidence_score": 0.95,
+        "source_file": "sidepanel/sidepanel.html"
+      },
+      {
+        "id": "conversation_management_flow",
+        "label": "Conversation Management Flow: List \u2192 Detail \u2192 Thread \u2192 Compose",
+        "nodes": [
+          "sidepanel_sidepanel_sidepanel_conv_list",
+          "sidepanel_sidepanel_sidepanel_conv_detail",
+          "sidepanel_sidepanel_sidepanel_message_thread",
+          "sidepanel_sidepanel_sidepanel_detail_composer"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "sidepanel/sidepanel.html"
+      },
+      {
+        "id": "label_management_system",
+        "label": "Label Management System: Filter \u2192 Modal \u2192 Form",
+        "nodes": [
+          "sidepanel_sidepanel_sidepanel_label_filters",
+          "sidepanel_sidepanel_sidepanel_label_modal",
+          "sidepanel_sidepanel_sidepanel_label_form"
+        ],
+        "relation": "form",
+        "confidence": "INFERRED",
+        "confidence_score": 0.85,
+        "source_file": "sidepanel/sidepanel.html"
+      },
+      {
+        "id": "linkedin_extension_icon_set",
+        "label": "LinkedIn Multi-Resolution Browser Extension Icon Set",
+        "nodes": [
+          "icons_icon128_linkedin_icon",
+          "icons_icon48_linkedin_icon",
+          "icons_icon16_linkedin_icon"
+        ],
+        "relation": "implement",
+        "confidence": "INFERRED",
+        "confidence_score": 0.95,
+        "source_file": "icons/icon128.png"
+      }
+    ]
+  },
   "nodes": [
     {
       "label": "service-worker.js",
@@ -10,7 +66,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "background_service_worker",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "service-worker.js"
     },
     {
@@ -20,7 +77,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "background_service_worker_autosync",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "autosync()"
     },
     {
@@ -30,7 +88,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "background_service_worker_updateunreadbadge",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "updateunreadbadge()"
     },
     {
@@ -40,7 +99,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "background_service_worker_handlemessage",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "handlemessage()"
     },
     {
@@ -50,7 +110,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "background_service_worker_getlinkedincsrf",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "getlinkedincsrf()"
     },
     {
@@ -60,7 +121,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "background_service_worker_buildgraphqlheaders",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "buildgraphqlheaders()"
     },
     {
@@ -70,7 +132,8 @@
       "source_location": "L221",
       "_origin": "ast",
       "id": "background_service_worker_buildrestheaders",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "buildrestheaders()"
     },
     {
@@ -80,7 +143,8 @@
       "source_location": "L229",
       "_origin": "ast",
       "id": "background_service_worker_getlinkedinprofileid",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "getlinkedinprofileid()"
     },
     {
@@ -90,7 +154,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "background_service_worker_parsegraphqlconversations",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "parsegraphqlconversations()"
     },
     {
@@ -100,7 +165,8 @@
       "source_location": "L312",
       "_origin": "ast",
       "id": "background_service_worker_parsevoyagerconversationssw",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "parsevoyagerconversationssw()"
     },
     {
@@ -110,7 +176,8 @@
       "source_location": "L355",
       "_origin": "ast",
       "id": "background_service_worker_resolveavatarsw",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "resolveavatarsw()"
     },
     {
@@ -120,7 +187,8 @@
       "source_location": "L368",
       "_origin": "ast",
       "id": "background_service_worker_fetchlinkedinmessagesdirect",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "fetchlinkedinmessagesdirect()"
     },
     {
@@ -130,7 +198,8 @@
       "source_location": "L437",
       "_origin": "ast",
       "id": "background_service_worker_fetchconversationmessagesdirect",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "fetchconversationmessagesdirect()"
     },
     {
@@ -140,7 +209,8 @@
       "source_location": "L483",
       "_origin": "ast",
       "id": "background_service_worker_getoropenlinkedintab",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "getoropenlinkedintab()"
     },
     {
@@ -150,7 +220,8 @@
       "source_location": "L496",
       "_origin": "ast",
       "id": "background_service_worker_pingtab",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "pingtab()"
     },
     {
@@ -160,7 +231,8 @@
       "source_location": "L503",
       "_origin": "ast",
       "id": "background_service_worker_fetchlinkedinmessages",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "fetchlinkedinmessages()"
     },
     {
@@ -170,7 +242,8 @@
       "source_location": "L543",
       "_origin": "ast",
       "id": "background_service_worker_fetchlinkedinprofile",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "fetchlinkedinprofile()"
     },
     {
@@ -180,7 +253,8 @@
       "source_location": "L562",
       "_origin": "ast",
       "id": "background_service_worker_startlinkedinoauth",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "startlinkedinoauth()"
     },
     {
@@ -190,7 +264,8 @@
       "source_location": "L603",
       "_origin": "ast",
       "id": "background_service_worker_exchangelinkedincode",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "exchangelinkedincode()"
     },
     {
@@ -200,7 +275,8 @@
       "source_location": "L641",
       "_origin": "ast",
       "id": "background_service_worker_openorfocustab",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "openorfocustab()"
     },
     {
@@ -210,7 +286,8 @@
       "source_location": "L652",
       "_origin": "ast",
       "id": "background_service_worker_mergeconversations",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "mergeconversations()"
     },
     {
@@ -220,7 +297,8 @@
       "source_location": "L666",
       "_origin": "ast",
       "id": "background_service_worker_sendlinkedinmessage",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "sendlinkedinmessage()"
     },
     {
@@ -230,7 +308,8 @@
       "source_location": "L702",
       "_origin": "ast",
       "id": "background_service_worker_waitfortabload",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "waitfortabload()"
     },
     {
@@ -240,7 +319,8 @@
       "source_location": "L715",
       "_origin": "ast",
       "id": "background_service_worker_startoutreachoauth",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "startoutreachoauth()"
     },
     {
@@ -250,7 +330,8 @@
       "source_location": "L771",
       "_origin": "ast",
       "id": "background_service_worker_refreshoutreachtoken",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "refreshoutreachtoken()"
     },
     {
@@ -261,6 +342,7 @@
       "_origin": "ast",
       "id": "content_content",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "content.js"
     },
     {
@@ -271,6 +353,7 @@
       "_origin": "ast",
       "id": "content_content_getpagecontext",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "getpagecontext()"
     },
     {
@@ -281,6 +364,7 @@
       "_origin": "ast",
       "id": "content_content_patchhistorypushstate",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "patchhistorypushstate()"
     },
     {
@@ -291,6 +375,7 @@
       "_origin": "ast",
       "id": "content_content_getcsrftoken",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "getcsrftoken()"
     },
     {
@@ -301,6 +386,7 @@
       "_origin": "ast",
       "id": "content_content_buildvoyagerheaders",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "buildvoyagerheaders()"
     },
     {
@@ -311,6 +397,7 @@
       "_origin": "ast",
       "id": "content_content_voyagerfetch",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "voyagerfetch()"
     },
     {
@@ -321,6 +408,7 @@
       "_origin": "ast",
       "id": "content_content_parsevoyagerconversations",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "parsevoyagerconversations()"
     },
     {
@@ -331,6 +419,7 @@
       "_origin": "ast",
       "id": "content_content_extractmessagetext",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "extractmessagetext()"
     },
     {
@@ -341,6 +430,7 @@
       "_origin": "ast",
       "id": "content_content_resolveavatar",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "resolveavatar()"
     },
     {
@@ -351,6 +441,7 @@
       "_origin": "ast",
       "id": "content_content_fetchvoyagerconversations",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "fetchvoyagerconversations()"
     },
     {
@@ -361,6 +452,7 @@
       "_origin": "ast",
       "id": "content_content_fetchsalesnavconversations",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "fetchsalesnavconversations()"
     },
     {
@@ -371,6 +463,7 @@
       "_origin": "ast",
       "id": "content_content_fetchconversationmessages",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "fetchconversationmessages()"
     },
     {
@@ -381,6 +474,7 @@
       "_origin": "ast",
       "id": "content_content_fetchlinkedinprofile",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "fetchlinkedinprofile()"
     },
     {
@@ -391,6 +485,7 @@
       "_origin": "ast",
       "id": "content_content_isvisible",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "isvisible()"
     },
     {
@@ -401,6 +496,7 @@
       "_origin": "ast",
       "id": "content_content_findmessageinput",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "findmessageinput()"
     },
     {
@@ -411,6 +507,7 @@
       "_origin": "ast",
       "id": "content_content_findsendbutton",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "findsendbutton()"
     },
     {
@@ -421,6 +518,7 @@
       "_origin": "ast",
       "id": "content_content_typeintoinput",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "typeintoinput()"
     },
     {
@@ -431,6 +529,7 @@
       "_origin": "ast",
       "id": "content_content_typeandsend",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "typeandsend()"
     },
     {
@@ -441,6 +540,7 @@
       "_origin": "ast",
       "id": "content_content_injectlabelbutton",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "injectlabelbutton()"
     },
     {
@@ -451,6 +551,7 @@
       "_origin": "ast",
       "id": "content_content_showlabeldropdown",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "showlabeldropdown()"
     },
     {
@@ -461,6 +562,7 @@
       "_origin": "ast",
       "id": "content_content_getcurrentconversationid",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "getcurrentconversationid()"
     },
     {
@@ -471,6 +573,7 @@
       "_origin": "ast",
       "id": "content_content_togglelabel",
       "community": 3,
+      "community_name": "Content Script Voyager API",
       "norm_label": "togglelabel()"
     },
     {
@@ -480,7 +583,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "content_dom_fallback",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "dom-fallback.js"
     },
     {
@@ -490,7 +594,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "content_dom_fallback_ismessagingpage",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "ismessagingpage()"
     },
     {
@@ -500,7 +605,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "content_dom_fallback_cleantext",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "cleantext()"
     },
     {
@@ -510,7 +616,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "content_dom_fallback_getthreadidfromurl",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "getthreadidfromurl()"
     },
     {
@@ -520,7 +627,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "content_dom_fallback_lookslikeconversationrow",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "lookslikeconversationrow()"
     },
     {
@@ -530,7 +638,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "content_dom_fallback_getconversationrows",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "getconversationrows()"
     },
     {
@@ -540,7 +649,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "content_dom_fallback_extractname",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "extractname()"
     },
     {
@@ -550,7 +660,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "content_dom_fallback_extracttimestamp",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "extracttimestamp()"
     },
     {
@@ -560,7 +671,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "content_dom_fallback_extractsnippet",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "extractsnippet()"
     },
     {
@@ -570,7 +682,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "content_dom_fallback_extractavatar",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "extractavatar()"
     },
     {
@@ -580,7 +693,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "content_dom_fallback_parserow",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "parserow()"
     },
     {
@@ -590,7 +704,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "content_dom_fallback_scrapedomconversations",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "scrapedomconversations()"
     },
     {
@@ -600,7 +715,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "content_dom_fallback_syncdomconversations",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "syncdomconversations()"
     },
     {
@@ -610,7 +726,8 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "content_dom_fallback_schedulesync",
-      "community": 5,
+      "community": 6,
+      "community_name": "Conversation Detail View",
       "norm_label": "schedulesync()"
     },
     {
@@ -620,7 +737,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "content_interceptor",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "interceptor.js"
     },
     {
@@ -630,7 +748,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "content_interceptor_ismessagingurl",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "ismessagingurl()"
     },
     {
@@ -640,7 +759,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "content_interceptor_parseresponse",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "parseresponse()"
     },
     {
@@ -650,7 +770,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "content_interceptor_parsegraphql",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "parsegraphql()"
     },
     {
@@ -660,7 +781,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "content_interceptor_parsevoyagerelements",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "parsevoyagerelements()"
     },
     {
@@ -670,7 +792,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "content_interceptor_extractconversation",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "extractconversation()"
     },
     {
@@ -680,7 +803,8 @@
       "source_location": "L204",
       "_origin": "ast",
       "id": "content_interceptor_dispatch",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": "dispatch()"
     },
     {
@@ -690,7 +814,8 @@
       "source_location": "L237",
       "_origin": "ast",
       "id": "content_interceptor_xmlhttprequest_open",
-      "community": 14,
+      "community": 16,
+      "community_name": "Community 16",
       "norm_label": ".open()"
     },
     {
@@ -700,7 +825,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "content_interceptor_xmlhttprequest_send",
-      "community": 10,
+      "community": 11,
+      "community_name": "Outreach Tab Rendering",
       "norm_label": ".send()"
     },
     {
@@ -710,7 +836,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "manifest",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "manifest.json"
     },
     {
@@ -720,7 +847,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "manifest_manifest_version",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "manifest_version"
     },
     {
@@ -730,7 +858,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "manifest_name",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "name"
     },
     {
@@ -740,7 +869,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "manifest_version",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "version"
     },
     {
@@ -750,7 +880,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "manifest_description",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "description"
     },
     {
@@ -760,7 +891,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "manifest_permissions",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "permissions"
     },
     {
@@ -770,7 +902,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "manifest_host_permissions",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "host_permissions"
     },
     {
@@ -780,7 +913,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "manifest_background",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "background"
     },
     {
@@ -790,7 +924,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "manifest_background_service_worker",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "service_worker"
     },
     {
@@ -800,7 +935,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "manifest_background_type",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "type"
     },
     {
@@ -810,7 +946,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "manifest_content_scripts",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "content_scripts"
     },
     {
@@ -820,7 +957,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "manifest_side_panel",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "side_panel"
     },
     {
@@ -830,7 +968,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "manifest_side_panel_default_path",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "default_path"
     },
     {
@@ -840,7 +979,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "manifest_action",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "action"
     },
     {
@@ -850,7 +990,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "manifest_action_default_title",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "default_title"
     },
     {
@@ -860,7 +1001,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "manifest_action_default_icon",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "default_icon"
     },
     {
@@ -870,7 +1012,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "manifest_default_icon_16",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "16"
     },
     {
@@ -880,7 +1023,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "manifest_default_icon_48",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "48"
     },
     {
@@ -890,7 +1034,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "manifest_default_icon_128",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "128"
     },
     {
@@ -900,7 +1045,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "manifest_icons",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "icons"
     },
     {
@@ -910,7 +1056,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "manifest_icons_16",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "16"
     },
     {
@@ -920,7 +1067,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "manifest_icons_48",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "48"
     },
     {
@@ -930,7 +1078,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "manifest_icons_128",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "128"
     },
     {
@@ -940,7 +1089,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "manifest_web_accessible_resources",
-      "community": 2,
+      "community": 1,
+      "community_name": "Background Sync & OAuth",
       "norm_label": "web_accessible_resources"
     },
     {
@@ -950,7 +1100,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "popup_popup",
-      "community": 15,
+      "community": 17,
+      "community_name": "Community 17",
       "norm_label": "popup.js"
     },
     {
@@ -961,6 +1112,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "sidepanel.js"
     },
     {
@@ -971,6 +1123,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_conversations",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "conversations"
     },
     {
@@ -981,6 +1134,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_labels",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "labels"
     },
     {
@@ -991,6 +1145,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_outreachsequences",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "outreachsequences"
     },
     {
@@ -1001,6 +1156,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_pendingsteps",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "pendingsteps"
     },
     {
@@ -1011,6 +1167,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_opensequenceids",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "opensequenceids"
     },
     {
@@ -1021,6 +1178,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_label_colors",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "label_colors"
     },
     {
@@ -1030,7 +1188,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_init",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "init()"
     },
     {
@@ -1040,7 +1199,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_reloadconversations",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "reloadconversations()"
     },
     {
@@ -1050,7 +1210,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderall",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "renderall()"
     },
     {
@@ -1061,6 +1222,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_switchtab",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "switchtab()"
     },
     {
@@ -1070,7 +1232,8 @@
       "source_location": "L124",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderfilterchips",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "renderfilterchips()"
     },
     {
@@ -1080,7 +1243,8 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_setlabelfilter",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "setlabelfilter()"
     },
     {
@@ -1090,7 +1254,8 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_getfilteredconversations",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "getfilteredconversations()"
     },
     {
@@ -1100,7 +1265,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderconversationlist",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "renderconversationlist()"
     },
     {
@@ -1110,7 +1276,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_buildconversationcard",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "buildconversationcard()"
     },
     {
@@ -1120,7 +1287,8 @@
       "source_location": "L295",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_selectconversation",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "selectconversation()"
     },
     {
@@ -1130,7 +1298,8 @@
       "source_location": "L301",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_openconversationdetail",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "openconversationdetail()"
     },
     {
@@ -1140,7 +1309,8 @@
       "source_location": "L339",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderdetaillabelchips",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "renderdetaillabelchips()"
     },
     {
@@ -1150,7 +1320,8 @@
       "source_location": "L365",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_closeconversationdetail",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "closeconversationdetail()"
     },
     {
@@ -1160,7 +1331,8 @@
       "source_location": "L373",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_loadconversationmessages",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "loadconversationmessages()"
     },
     {
@@ -1170,7 +1342,8 @@
       "source_location": "L403",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_rendermessagethread",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "rendermessagethread()"
     },
     {
@@ -1180,7 +1353,8 @@
       "source_location": "L460",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_sendmessage",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "sendmessage()"
     },
     {
@@ -1190,7 +1364,8 @@
       "source_location": "L504",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_showlabelmodal",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "showlabelmodal()"
     },
     {
@@ -1200,7 +1375,8 @@
       "source_location": "L514",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_hidelabelmodal",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "hidelabelmodal()"
     },
     {
@@ -1210,7 +1386,8 @@
       "source_location": "L518",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderlabelmodallist",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "renderlabelmodallist()"
     },
     {
@@ -1220,7 +1397,8 @@
       "source_location": "L563",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_showlabelassigndropdown",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "showlabelassigndropdown()"
     },
     {
@@ -1231,6 +1409,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_rendercolorswatches",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "rendercolorswatches()"
     },
     {
@@ -1241,6 +1420,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderlabelslist",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "renderlabelslist()"
     },
     {
@@ -1251,6 +1431,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_buildlabelrow",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "buildlabelrow()"
     },
     {
@@ -1260,7 +1441,8 @@
       "source_location": "L650",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_confirmdeletelabel",
-      "community": 4,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "confirmdeletelabel()"
     },
     {
@@ -1271,6 +1453,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_starteditlabel",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "starteditlabel()"
     },
     {
@@ -1281,6 +1464,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_shownewlabelform",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "shownewlabelform()"
     },
     {
@@ -1290,7 +1474,8 @@
       "source_location": "L704",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_hidelabelform",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "hidelabelform()"
     },
     {
@@ -1300,7 +1485,8 @@
       "source_location": "L711",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_savelabel",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "savelabel()"
     },
     {
@@ -1310,7 +1496,8 @@
       "source_location": "L731",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderoutreachtab",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "renderoutreachtab()"
     },
     {
@@ -1320,7 +1507,8 @@
       "source_location": "L744",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_connectoutreach",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "connectoutreach()"
     },
     {
@@ -1330,7 +1518,8 @@
       "source_location": "L788",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_disconnectoutreach",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "disconnectoutreach()"
     },
     {
@@ -1340,7 +1529,8 @@
       "source_location": "L798",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_loadoutreachsequences",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "loadoutreachsequences()"
     },
     {
@@ -1350,7 +1540,8 @@
       "source_location": "L827",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_rendersequenceslist",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "rendersequenceslist()"
     },
     {
@@ -1360,7 +1551,8 @@
       "source_location": "L856",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_buildsequencegroup",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "buildsequencegroup()"
     },
     {
@@ -1370,7 +1562,8 @@
       "source_location": "L906",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_buildstepcard",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "buildstepcard()"
     },
     {
@@ -1381,6 +1574,7 @@
       "_origin": "ast",
       "id": "sidepanel_sidepanel_executeoutreachstep",
       "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "executeoutreachstep()"
     },
     {
@@ -1390,7 +1584,8 @@
       "source_location": "L988",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderlinkedinaccountbar",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "renderlinkedinaccountbar()"
     },
     {
@@ -1400,7 +1595,8 @@
       "source_location": "L1026",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_synclinkedin",
-      "community": 13,
+      "community": 14,
+      "community_name": "XHR Interceptor",
       "norm_label": "synclinkedin()"
     },
     {
@@ -1410,7 +1606,8 @@
       "source_location": "L1100",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_findlinkedintab",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "findlinkedintab()"
     },
     {
@@ -1420,7 +1617,8 @@
       "source_location": "L1109",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_pingcontentscript",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "pingcontentscript()"
     },
     {
@@ -1430,7 +1628,8 @@
       "source_location": "L1118",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_syncconversations",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "syncconversations()"
     },
     {
@@ -1440,7 +1639,8 @@
       "source_location": "L1167",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_setupeventlisteners",
-      "community": 12,
+      "community": 13,
+      "community_name": "Conversation List & Filtering",
       "norm_label": "setupeventlisteners()"
     },
     {
@@ -1450,7 +1650,8 @@
       "source_location": "L1248",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_initsettingstab",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "initsettingstab()"
     },
     {
@@ -1460,7 +1661,8 @@
       "source_location": "L1305",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_updateplanbstatus",
-      "community": 7,
+      "community": 4,
+      "community_name": "Side Panel State & Labels",
       "norm_label": "updateplanbstatus()"
     },
     {
@@ -1470,7 +1672,8 @@
       "source_location": "L1317",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_testvoyagerconnection",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "testvoyagerconnection()"
     },
     {
@@ -1480,7 +1683,8 @@
       "source_location": "L1353",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_connectlinkedinoauth",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "connectlinkedinoauth()"
     },
     {
@@ -1490,7 +1694,8 @@
       "source_location": "L1390",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_exchangelinkedinoauth",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "exchangelinkedinoauth()"
     },
     {
@@ -1500,7 +1705,8 @@
       "source_location": "L1432",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_disconnectlinkedinoauth",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "disconnectlinkedinoauth()"
     },
     {
@@ -1510,7 +1716,8 @@
       "source_location": "L1444",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_renderoauthconnected",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "renderoauthconnected()"
     },
     {
@@ -1520,7 +1727,8 @@
       "source_location": "L1471",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_showoautherror",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "showoautherror()"
     },
     {
@@ -1530,7 +1738,8 @@
       "source_location": "L1482",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_showtoast",
-      "community": 7,
+      "community": 8,
+      "community_name": "Label Modal & Storage",
       "norm_label": "showtoast()"
     },
     {
@@ -1540,7 +1749,8 @@
       "source_location": "L1494",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_getinitials",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "getinitials()"
     },
     {
@@ -1550,7 +1760,8 @@
       "source_location": "L1501",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_stringtocolor",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "stringtocolor()"
     },
     {
@@ -1560,7 +1771,8 @@
       "source_location": "L1511",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_formatdatesep",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "formatdatesep()"
     },
     {
@@ -1570,7 +1782,8 @@
       "source_location": "L1522",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_formatmsgtime",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "formatmsgtime()"
     },
     {
@@ -1580,7 +1793,8 @@
       "source_location": "L1528",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_formattime",
-      "community": 6,
+      "community": 7,
+      "community_name": "Settings & OAuth Flow",
       "norm_label": "formattime()"
     },
     {
@@ -1590,7 +1804,8 @@
       "source_location": "L1541",
       "_origin": "ast",
       "id": "sidepanel_sidepanel_escapehtml",
-      "community": 4,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "escapehtml()"
     },
     {
@@ -1600,7 +1815,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_outreach",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "outreach.js"
     },
     {
@@ -1610,7 +1826,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "utils_outreach_apifetch",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "apifetch()"
     },
     {
@@ -1620,7 +1837,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "utils_outreach_refreshtoken",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "refreshtoken()"
     },
     {
@@ -1630,7 +1848,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "utils_outreach_getsequences",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "getsequences()"
     },
     {
@@ -1640,7 +1859,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "utils_outreach_getsequencesteps",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "getsequencesteps()"
     },
     {
@@ -1650,7 +1870,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "utils_outreach_getpendinglinkedintasks",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "getpendinglinkedintasks()"
     },
     {
@@ -1660,7 +1881,8 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "utils_outreach_createlinkedintask",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "createlinkedintask()"
     },
     {
@@ -1670,7 +1892,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "utils_outreach_completetask",
-      "community": 9,
+      "community": 10,
+      "community_name": "Fetch Interceptor (Plan B)",
       "norm_label": "completetask()"
     },
     {
@@ -1680,7 +1903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_storage",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "storage.js"
     },
     {
@@ -1690,7 +1914,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "utils_storage_uuid",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "uuid()"
     },
     {
@@ -1700,7 +1925,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "utils_storage_getconversations",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "getconversations()"
     },
     {
@@ -1710,7 +1936,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "utils_storage_setconversations",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "setconversations()"
     },
     {
@@ -1720,7 +1947,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "utils_storage_assignlabel",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "assignlabel()"
     },
     {
@@ -1730,7 +1958,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "utils_storage_removelabel",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "removelabel()"
     },
     {
@@ -1740,7 +1969,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "utils_storage_getlabels",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "getlabels()"
     },
     {
@@ -1750,7 +1980,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "utils_storage_setlabels",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "setlabels()"
     },
     {
@@ -1760,7 +1991,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "utils_storage_createlabel",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "createlabel()"
     },
     {
@@ -1770,7 +2002,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "utils_storage_updatelabel",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "updatelabel()"
     },
     {
@@ -1780,7 +2013,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "utils_storage_deletelabel",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "deletelabel()"
     },
     {
@@ -1790,7 +2024,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "utils_storage_getoutreachauth",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "getoutreachauth()"
     },
     {
@@ -1800,7 +2035,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "utils_storage_setoutreachauth",
-      "community": 1,
+      "community": 0,
+      "community_name": "UI & Icons",
       "norm_label": "setoutreachauth()"
     },
     {
@@ -1810,7 +2046,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "utils_storage_getoutreachconfig",
-      "community": 8,
+      "community": 5,
+      "community_name": "DOM Fallback Scraper",
       "norm_label": "getoutreachconfig()"
     },
     {
@@ -1820,37 +2057,488 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "utils_storage_setoutreachconfig",
-      "community": 11,
+      "community": 12,
+      "community_name": "Label CRUD & Modals",
       "norm_label": "setoutreachconfig()"
     },
     {
-      "label": "popup/popup.html",
-      "file_type": "document",
+      "label": "Popup Container",
+      "file_type": "code",
       "source_file": "popup/popup.html",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "popup_popup_popup_html",
-      "community": 0,
-      "norm_label": "popup/popup.html"
+      "id": "popup_popup_popup_popup_container",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "popup container"
     },
     {
-      "label": "sidepanel/sidepanel.html",
-      "file_type": "document",
+      "label": "Button: Open Side Panel",
+      "file_type": "code",
+      "source_file": "popup/popup.html",
+      "source_location": "line 22",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "popup_popup_popup_btn_open_sidepanel",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "button: open side panel"
+    },
+    {
+      "label": "Button: Open LinkedIn (Popup)",
+      "file_type": "code",
+      "source_file": "popup/popup.html",
+      "source_location": "line 30",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "popup_popup_popup_btn_open_linkedin",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "button: open linkedin (popup)"
+    },
+    {
+      "label": "Button: Open Sales Navigator (Popup)",
+      "file_type": "code",
+      "source_file": "popup/popup.html",
+      "source_location": "line 37",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "popup_popup_popup_btn_open_salesnav",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "button: open sales navigator (popup)"
+    },
+    {
+      "label": "Popup Script (popup.js)",
+      "file_type": "code",
+      "source_file": "popup/popup.html",
+      "source_location": "line 51",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "popup_popup_popup_popup_js",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "popup script (popup.js)"
+    },
+    {
+      "label": "Side Panel Container",
+      "file_type": "code",
       "source_file": "sidepanel/sidepanel.html",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html",
-      "community": 0,
-      "norm_label": "sidepanel/sidepanel.html"
+      "id": "sidepanel_sidepanel_sidepanel_side_panel",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "side panel container"
     },
     {
-      "label": "icons/icon128.png",
+      "label": "App Header with Sync Button",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_app_header",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "app header with sync button"
+    },
+    {
+      "label": "Navigation Tab Bar",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 30",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_tab_bar",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "navigation tab bar"
+    },
+    {
+      "label": "Conversations Tab Content",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 60",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_tab_conversations",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "conversations tab content"
+    },
+    {
+      "label": "Labels Tab Content",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 183",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_tab_labels",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "labels tab content"
+    },
+    {
+      "label": "Outreach Tab Content",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 219",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_tab_outreach",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "outreach tab content"
+    },
+    {
+      "label": "Settings Tab Content",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 272",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_tab_settings",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "settings tab content"
+    },
+    {
+      "label": "LinkedIn Account / Sync Status Bar",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 63",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_li_account_bar",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "linkedin account / sync status bar"
+    },
+    {
+      "label": "Not-Synced Import Prompt",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 65",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_li_not_synced",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "not-synced import prompt"
+    },
+    {
+      "label": "Synced Account Row",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 79",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_li_synced",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "synced account row"
+    },
+    {
+      "label": "Passive Mode Notice",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 95",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_li_passive_mode",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "passive mode notice"
+    },
+    {
+      "label": "Conversation List",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 114",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_conv_list",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "conversation list"
+    },
+    {
+      "label": "Label Filter Chips",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 110",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_label_filters",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "label filter chips"
+    },
+    {
+      "label": "Conversation Detail View",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 125",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_conv_detail",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "conversation detail view"
+    },
+    {
+      "label": "Message Thread Display",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 149",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_message_thread",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "message thread display"
+    },
+    {
+      "label": "Message Composer",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 161",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_detail_composer",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "message composer"
+    },
+    {
+      "label": "Label Picker Modal",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 411",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_label_modal",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "label picker modal"
+    },
+    {
+      "label": "Label Creation Form",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 194",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_label_form",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "label creation form"
+    },
+    {
+      "label": "Outreach.io Disconnected / Connect Card",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 221",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_outreach_disconnected",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "outreach.io disconnected / connect card"
+    },
+    {
+      "label": "Outreach.io Connected State / Sequences List",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 243",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_outreach_connected",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "outreach.io connected state / sequences list"
+    },
+    {
+      "label": "Plan A: Session-Based Sync via Voyager API",
+      "file_type": "rationale",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 297",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_plan_a_session_sync",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "plan a: session-based sync via voyager api"
+    },
+    {
+      "label": "Plan B: Passive Intercept Sync (Fallback)",
+      "file_type": "rationale",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 311",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_plan_b_passive_sync",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "plan b: passive intercept sync (fallback)"
+    },
+    {
+      "label": "Plan C: Official LinkedIn OAuth 2.0",
+      "file_type": "rationale",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 329",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "plan c: official linkedin oauth 2.0"
+    },
+    {
+      "label": "LinkedIn Internal Voyager API",
+      "file_type": "concept",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 305",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_voyager_api",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "linkedin internal voyager api"
+    },
+    {
+      "label": "LinkedIn OAuth 2.0 Two-Step Exchange Flow",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 341",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_li_oauth_flow",
+      "community": 2,
+      "community_name": "Extension Manifest",
+      "norm_label": "linkedin oauth 2.0 two-step exchange flow"
+    },
+    {
+      "label": "Side Panel Script (sidepanel.js module)",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 435",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_sidepanel_js",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "side panel script (sidepanel.js module)"
+    },
+    {
+      "label": "Footer Button: Open LinkedIn (Side Panel)",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 394",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_footer_btn_open_linkedin",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "footer button: open linkedin (side panel)"
+    },
+    {
+      "label": "Footer Button: Open Sales Navigator (Side Panel)",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 400",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_footer_btn_open_salesnav",
+      "community": 9,
+      "community_name": "Outreach.io Integration",
+      "norm_label": "footer button: open sales navigator (side panel)"
+    },
+    {
+      "label": "Toast Notification Element",
+      "file_type": "code",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 434",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "sidepanel_sidepanel_sidepanel_toast",
+      "community": 18,
+      "community_name": "Community 18",
+      "norm_label": "toast notification element"
+    },
+    {
+      "label": "LinkedIn Extension Icon (128px)",
       "file_type": "image",
       "source_file": "icons/icon128.png",
       "source_location": null,
@@ -1858,12 +2546,13 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "icons_icon128_png",
-      "community": 0,
-      "norm_label": "icons/icon128.png"
+      "id": "icons_icon128_linkedin_icon",
+      "community": 15,
+      "community_name": "Popup Entry Point",
+      "norm_label": "linkedin extension icon (128px)"
     },
     {
-      "label": "icons/icon16.png",
+      "label": "LinkedIn Extension Icon (16px)",
       "file_type": "image",
       "source_file": "icons/icon16.png",
       "source_location": null,
@@ -1871,12 +2560,13 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "icons_icon16_png",
-      "community": 0,
-      "norm_label": "icons/icon16.png"
+      "id": "icons_icon16_linkedin_icon",
+      "community": 15,
+      "community_name": "Popup Entry Point",
+      "norm_label": "linkedin extension icon (16px)"
     },
     {
-      "label": "icons/icon48.png",
+      "label": "LinkedIn Extension Icon (48px)",
       "file_type": "image",
       "source_file": "icons/icon48.png",
       "source_location": null,
@@ -1884,321 +2574,38 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "icons_icon48_png",
-      "community": 0,
-      "norm_label": "icons/icon48.png"
+      "id": "icons_icon48_linkedin_icon",
+      "community": 15,
+      "community_name": "Popup Entry Point",
+      "norm_label": "linkedin extension icon (48px)"
     },
     {
-      "label": "Popup Header (LinkedIn logo + title v1.0.0)",
+      "label": "LinkedIn Brand Identity - Blue Square with White L",
       "file_type": "concept",
-      "source_file": "popup/popup.html",
-      "source_location": "line 10-19",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "popup_popup_popup_html_header",
-      "community": 0,
-      "norm_label": "popup header (linkedin logo + title v1.0.0)"
-    },
-    {
-      "label": "Open Side Panel Button (primary action)",
-      "file_type": "concept",
-      "source_file": "popup/popup.html",
-      "source_location": "line 22-28",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "popup_popup_popup_html_btn_open_sidepanel",
-      "community": 0,
-      "norm_label": "open side panel button (primary action)"
-    },
-    {
-      "label": "Open LinkedIn Button",
-      "file_type": "concept",
-      "source_file": "popup/popup.html",
-      "source_location": "line 30-35",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "popup_popup_popup_html_btn_open_linkedin",
-      "community": 0,
-      "norm_label": "open linkedin button"
-    },
-    {
-      "label": "Open Sales Navigator Button",
-      "file_type": "concept",
-      "source_file": "popup/popup.html",
-      "source_location": "line 37-44",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "popup_popup_popup_html_btn_open_salesnav",
-      "community": 0,
-      "norm_label": "open sales navigator button"
-    },
-    {
-      "label": "Report an Issue Footer Link",
-      "file_type": "concept",
-      "source_file": "popup/popup.html",
-      "source_location": "line 47-49",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "popup_popup_popup_html_footer_report_issue",
-      "community": 0,
-      "norm_label": "report an issue footer link"
-    },
-    {
-      "label": "App Header (logo + sync button)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 11-27",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_app_header",
-      "community": 0,
-      "norm_label": "app header (logo + sync button)"
-    },
-    {
-      "label": "Tab Navigation Bar (Messages, Labels, Outreach, Settings)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 30-57",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_tab_bar",
-      "community": 0,
-      "norm_label": "tab navigation bar (messages, labels, outreach, settings)"
-    },
-    {
-      "label": "Conversations Tab (Messages)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 60-180",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_tab_conversations",
-      "community": 0,
-      "norm_label": "conversations tab (messages)"
-    },
-    {
-      "label": "Labels Tab",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 183-216",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_tab_labels",
-      "community": 0,
-      "norm_label": "labels tab"
-    },
-    {
-      "label": "Outreach Tab (Outreach.io integration)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 219-269",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_tab_outreach",
-      "community": 0,
-      "norm_label": "outreach tab (outreach.io integration)"
-    },
-    {
-      "label": "Settings Tab",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 272-390",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_tab_settings",
-      "community": 0,
-      "norm_label": "settings tab"
-    },
-    {
-      "label": "LinkedIn Account Sync Bar (import / synced states)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 63-101",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_li_account_bar",
-      "community": 0,
-      "norm_label": "linkedin account sync bar (import / synced states)"
-    },
-    {
-      "label": "Conversation List (search + label filter chips)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 103-122",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_conv_list",
-      "community": 0,
-      "norm_label": "conversation list (search + label filter chips)"
-    },
-    {
-      "label": "Conversation Detail View (thread + composer + label float btn)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 125-179",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_conv_detail",
-      "community": 0,
-      "norm_label": "conversation detail view (thread + composer + label float btn)"
-    },
-    {
-      "label": "Label Creation Form (name + color picker)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 194-205",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_label_form",
-      "community": 0,
-      "norm_label": "label creation form (name + color picker)"
-    },
-    {
-      "label": "Label Picker Modal (search + assign labels to conversation)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 411-432",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_label_modal",
-      "community": 0,
-      "norm_label": "label picker modal (search + assign labels to conversation)"
-    },
-    {
-      "label": "Outreach.io OAuth Connection Card (client ID + secret)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 221-268",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_outreach_connect",
-      "community": 0,
-      "norm_label": "outreach.io oauth connection card (client id + secret)"
-    },
-    {
-      "label": "Plan A: Session Sync via LinkedIn Voyager API (JSESSIONID cookie)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 297-308",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_plan_a_session_sync",
-      "community": 0,
-      "norm_label": "plan a: session sync via linkedin voyager api (jsessionid cookie)"
-    },
-    {
-      "label": "Plan B: Passive Sync Fallback (browse inbox to capture)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 311-327",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_plan_b_passive_sync",
-      "community": 0,
-      "norm_label": "plan b: passive sync fallback (browse inbox to capture)"
-    },
-    {
-      "label": "Plan C: Official LinkedIn OAuth 2.0 (Partner API, openid/profile/email scopes)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 330-389",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_plan_c_linkedin_oauth",
-      "community": 0,
-      "norm_label": "plan c: official linkedin oauth 2.0 (partner api, openid/profile/email scopes)"
-    },
-    {
-      "label": "Unread Badge Setting (red count badge on extension icon)",
-      "file_type": "concept",
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 275-294",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "sidepanel_sidepanel_sidepanel_html_unread_badge",
-      "community": 0,
-      "norm_label": "unread badge setting (red count badge on extension icon)"
-    },
-    {
-      "label": "Blue Square with White L Icon (128px, LinkedIn-style #0A66C2)",
-      "file_type": "image",
       "source_file": "icons/icon128.png",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "icons_icon128_png_blue_l_icon",
-      "community": 0,
-      "norm_label": "blue square with white l icon (128px, linkedin-style #0a66c2)"
+      "id": "icons_linkedin_brand_identity",
+      "community": 15,
+      "community_name": "Popup Entry Point",
+      "norm_label": "linkedin brand identity - blue square with white l"
     },
     {
-      "label": "Blue Square with White L Icon (48px, LinkedIn-style #0A66C2)",
-      "file_type": "image",
-      "source_file": "icons/icon48.png",
+      "label": "Browser Extension Icon Set (Multi-Resolution)",
+      "file_type": "concept",
+      "source_file": "icons/icon128.png",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "icons_icon48_png_blue_l_icon",
-      "community": 0,
-      "norm_label": "blue square with white l icon (48px, linkedin-style #0a66c2)"
-    },
-    {
-      "label": "Blue Square with White L Icon (16px, LinkedIn-style #0A66C2)",
-      "file_type": "image",
-      "source_file": "icons/icon16.png",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "icons_icon16_png_blue_l_icon",
-      "community": 0,
-      "norm_label": "blue square with white l icon (16px, linkedin-style #0a66c2)"
+      "id": "icons_browser_extension_icon_set",
+      "community": 15,
+      "community_name": "Popup Entry Point",
+      "norm_label": "browser extension icon set (multi-resolution)"
     }
   ],
   "links": [
@@ -6393,280 +6800,320 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "popup/popup.html",
-      "source_location": "line 30-35",
+      "source_location": "line 30",
       "weight": 1.0,
-      "source": "popup_popup_popup_html",
-      "target": "popup_popup_popup_html_btn_open_linkedin"
+      "source": "popup_popup_popup_popup_container",
+      "target": "popup_popup_popup_btn_open_linkedin"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "popup/popup.html",
-      "source_location": "line 37-44",
+      "source_location": "line 37",
       "weight": 1.0,
-      "source": "popup_popup_popup_html",
-      "target": "popup_popup_popup_html_btn_open_salesnav"
+      "source": "popup_popup_popup_popup_container",
+      "target": "popup_popup_popup_btn_open_salesnav"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "popup/popup.html",
-      "source_location": "line 22-28",
+      "source_location": "line 22",
       "weight": 1.0,
-      "source": "popup_popup_popup_html",
-      "target": "popup_popup_popup_html_btn_open_sidepanel"
+      "source": "popup_popup_popup_popup_container",
+      "target": "popup_popup_popup_btn_open_sidepanel"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "popup/popup.html",
-      "source_location": "line 47-49",
+      "source_location": "line 51",
       "weight": 1.0,
-      "source": "popup_popup_popup_html",
-      "target": "popup_popup_popup_html_footer_report_issue"
+      "source": "popup_popup_popup_popup_container",
+      "target": "popup_popup_popup_popup_js"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "popup/popup.html",
+      "source_location": "line 22",
+      "weight": 1.0,
+      "source": "popup_popup_popup_btn_open_sidepanel",
+      "target": "sidepanel_sidepanel_sidepanel_side_panel"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "popup/popup.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "popup_popup_popup_btn_open_linkedin",
+      "target": "sidepanel_sidepanel_sidepanel_footer_btn_open_linkedin"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "popup/popup.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "popup_popup_popup_btn_open_salesnav",
+      "target": "sidepanel_sidepanel_sidepanel_footer_btn_open_salesnav"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "popup/popup.html",
-      "source_location": "line 10-19",
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 11",
       "weight": 1.0,
-      "source": "popup_popup_popup_html",
-      "target": "popup_popup_popup_html_header"
+      "source": "sidepanel_sidepanel_sidepanel_side_panel",
+      "target": "sidepanel_sidepanel_sidepanel_app_header"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 435",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_side_panel",
+      "target": "sidepanel_sidepanel_sidepanel_sidepanel_js"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 30",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_side_panel",
+      "target": "sidepanel_sidepanel_sidepanel_tab_bar"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 31",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_bar",
+      "target": "sidepanel_sidepanel_sidepanel_tab_conversations"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 37",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_bar",
+      "target": "sidepanel_sidepanel_sidepanel_tab_labels"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 44",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_bar",
+      "target": "sidepanel_sidepanel_sidepanel_tab_outreach"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 50",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_bar",
+      "target": "sidepanel_sidepanel_sidepanel_tab_settings"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 125",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_conversations",
+      "target": "sidepanel_sidepanel_sidepanel_conv_detail"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 114",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_conversations",
+      "target": "sidepanel_sidepanel_sidepanel_conv_list"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 110",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_conversations",
+      "target": "sidepanel_sidepanel_sidepanel_label_filters"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 63",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_conversations",
+      "target": "sidepanel_sidepanel_sidepanel_li_account_bar"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 194",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_labels",
+      "target": "sidepanel_sidepanel_sidepanel_label_form"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 243",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_outreach",
+      "target": "sidepanel_sidepanel_sidepanel_outreach_connected"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 221",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_outreach",
+      "target": "sidepanel_sidepanel_sidepanel_outreach_disconnected"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 297",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_settings",
+      "target": "sidepanel_sidepanel_sidepanel_plan_a_session_sync"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 311",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_settings",
+      "target": "sidepanel_sidepanel_sidepanel_plan_b_passive_sync"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 329",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_tab_settings",
+      "target": "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 65",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_li_account_bar",
+      "target": "sidepanel_sidepanel_sidepanel_li_not_synced"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 95",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_li_account_bar",
+      "target": "sidepanel_sidepanel_sidepanel_li_passive_mode"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 79",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_li_account_bar",
+      "target": "sidepanel_sidepanel_sidepanel_li_synced"
     },
     {
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
-      "source_file": "popup/popup.html",
-      "source_location": "line 22-28",
-      "weight": 0.85,
-      "source": "popup_popup_popup_html_btn_open_sidepanel",
-      "target": "sidepanel_sidepanel_sidepanel_html"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 11-27",
+      "source_location": "line 95",
       "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_app_header"
+      "source": "sidepanel_sidepanel_sidepanel_li_account_bar",
+      "target": "sidepanel_sidepanel_sidepanel_plan_b_passive_sync"
     },
     {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 30-57",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_tab_bar"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 60-180",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_tab_conversations"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 183-216",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_tab_labels"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 219-269",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_tab_outreach"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 272-390",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html",
-      "target": "sidepanel_sidepanel_sidepanel_html_tab_settings"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "icons/icon128.png",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "icons_icon128_png",
-      "target": "icons_icon128_png_blue_l_icon"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "icons/icon16.png",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "icons_icon16_png",
-      "target": "icons_icon16_png_blue_l_icon"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "icons/icon48.png",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "icons_icon48_png",
-      "target": "icons_icon48_png_blue_l_icon"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.75,
-      "source_file": "popup/popup.html",
-      "source_location": "line 11-14",
-      "weight": 0.75,
-      "source": "popup_popup_popup_html_header",
-      "target": "icons_icon128_png_blue_l_icon"
-    },
-    {
-      "relation": "conceptually_related_to",
+      "relation": "semantically_similar_to",
       "confidence": "INFERRED",
       "confidence_score": 0.75,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 13-16",
-      "weight": 0.75,
-      "source": "sidepanel_sidepanel_sidepanel_html_app_header",
-      "target": "icons_icon128_png_blue_l_icon"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 125-179",
+      "source_location": null,
       "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_conversations",
-      "target": "sidepanel_sidepanel_sidepanel_html_conv_detail"
+      "source": "sidepanel_sidepanel_sidepanel_li_not_synced",
+      "target": "sidepanel_sidepanel_sidepanel_outreach_disconnected"
     },
     {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 103-122",
+      "source_location": null,
       "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_conversations",
-      "target": "sidepanel_sidepanel_sidepanel_html_conv_list"
+      "source": "sidepanel_sidepanel_sidepanel_li_synced",
+      "target": "sidepanel_sidepanel_sidepanel_outreach_connected"
     },
     {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 63-101",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_conversations",
-      "target": "sidepanel_sidepanel_sidepanel_html_li_account_bar"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 194-205",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_labels",
-      "target": "sidepanel_sidepanel_sidepanel_html_label_form"
-    },
-    {
-      "relation": "references",
+      "relation": "shares_data_with",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 411-432",
-      "weight": 0.85,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_labels",
-      "target": "sidepanel_sidepanel_sidepanel_html_label_modal"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 221-268",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_outreach",
-      "target": "sidepanel_sidepanel_sidepanel_html_outreach_connect"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 297-308",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_settings",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_a_session_sync"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 311-327",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_settings",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_b_passive_sync"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 330-389",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_settings",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_c_linkedin_oauth"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 275-294",
-      "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_tab_settings",
-      "target": "sidepanel_sidepanel_sidepanel_html_unread_badge"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.75,
-      "source_file": "sidepanel/sidepanel.html",
       "source_location": null,
-      "weight": 0.75,
-      "source": "sidepanel_sidepanel_sidepanel_html_li_account_bar",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_a_session_sync"
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_label_filters",
+      "target": "sidepanel_sidepanel_sidepanel_label_modal"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 161",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_conv_detail",
+      "target": "sidepanel_sidepanel_sidepanel_detail_composer"
     },
     {
       "relation": "references",
@@ -6675,28 +7122,78 @@
       "source_file": "sidepanel/sidepanel.html",
       "source_location": "line 159",
       "weight": 1.0,
-      "source": "sidepanel_sidepanel_sidepanel_html_conv_detail",
-      "target": "sidepanel_sidepanel_sidepanel_html_label_modal"
+      "source": "sidepanel_sidepanel_sidepanel_conv_detail",
+      "target": "sidepanel_sidepanel_sidepanel_label_modal"
     },
     {
-      "relation": "conceptually_related_to",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 297-327",
-      "weight": 0.9,
-      "source": "sidepanel_sidepanel_sidepanel_html_plan_a_session_sync",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_b_passive_sync"
+      "source_location": "line 149",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_conv_detail",
+      "target": "sidepanel_sidepanel_sidepanel_message_thread"
     },
     {
-      "relation": "conceptually_related_to",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_label_modal",
+      "target": "sidepanel_sidepanel_sidepanel_label_form"
+    },
+    {
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sidepanel/sidepanel.html",
-      "source_location": "line 311-389",
-      "weight": 0.9,
-      "source": "sidepanel_sidepanel_sidepanel_html_plan_b_passive_sync",
-      "target": "sidepanel_sidepanel_sidepanel_html_plan_c_linkedin_oauth"
+      "source_location": "line 305",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_plan_a_session_sync",
+      "target": "sidepanel_sidepanel_sidepanel_voyager_api"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 311",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_plan_b_passive_sync",
+      "target": "sidepanel_sidepanel_sidepanel_plan_a_session_sync"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 329",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth",
+      "target": "sidepanel_sidepanel_sidepanel_plan_a_session_sync"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html",
+      "source_location": "line 341",
+      "weight": 1.0,
+      "source": "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth",
+      "target": "sidepanel_sidepanel_sidepanel_li_oauth_flow"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "icons/icon128.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon128_linkedin_icon",
+      "target": "icons_browser_extension_icon_set"
     },
     {
       "relation": "semantically_similar_to",
@@ -6704,9 +7201,49 @@
       "confidence_score": 0.95,
       "source_file": "icons/icon128.png",
       "source_location": null,
-      "weight": 0.95,
-      "source": "icons_icon128_png_blue_l_icon",
-      "target": "icons_icon48_png_blue_l_icon"
+      "weight": 1.0,
+      "source": "icons_icon128_linkedin_icon",
+      "target": "icons_icon16_linkedin_icon"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "icons/icon128.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon128_linkedin_icon",
+      "target": "icons_icon48_linkedin_icon"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "icons/icon128.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon128_linkedin_icon",
+      "target": "icons_linkedin_brand_identity"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "icons/icon16.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon16_linkedin_icon",
+      "target": "icons_browser_extension_icon_set"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "icons/icon16.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon16_linkedin_icon",
+      "target": "icons_linkedin_brand_identity"
     },
     {
       "relation": "semantically_similar_to",
@@ -6714,11 +7251,85 @@
       "confidence_score": 0.95,
       "source_file": "icons/icon48.png",
       "source_location": null,
-      "weight": 0.95,
-      "source": "icons_icon48_png_blue_l_icon",
-      "target": "icons_icon16_png_blue_l_icon"
+      "weight": 1.0,
+      "source": "icons_icon48_linkedin_icon",
+      "target": "icons_icon16_linkedin_icon"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "icons/icon48.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon48_linkedin_icon",
+      "target": "icons_browser_extension_icon_set"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "icons/icon48.png",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "icons_icon48_linkedin_icon",
+      "target": "icons_linkedin_brand_identity"
     }
   ],
-  "hyperedges": [],
-  "built_at_commit": "33d0e09075f559e33f88f18ea31acd73c3c8a288"
+  "hyperedges": [
+    {
+      "id": "linkedin_sync_strategy_fallback_chain",
+      "label": "LinkedIn Sync Strategy: Three-Tier Fallback Chain (Plan A \u2192 B \u2192 C)",
+      "nodes": [
+        "sidepanel_sidepanel_sidepanel_plan_a_session_sync",
+        "sidepanel_sidepanel_sidepanel_plan_b_passive_sync",
+        "sidepanel_sidepanel_sidepanel_plan_c_linkedin_oauth"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "sidepanel/sidepanel.html"
+    },
+    {
+      "id": "conversation_management_flow",
+      "label": "Conversation Management Flow: List \u2192 Detail \u2192 Thread \u2192 Compose",
+      "nodes": [
+        "sidepanel_sidepanel_sidepanel_conv_list",
+        "sidepanel_sidepanel_sidepanel_conv_detail",
+        "sidepanel_sidepanel_sidepanel_message_thread",
+        "sidepanel_sidepanel_sidepanel_detail_composer"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sidepanel/sidepanel.html"
+    },
+    {
+      "id": "label_management_system",
+      "label": "Label Management System: Filter \u2192 Modal \u2192 Form",
+      "nodes": [
+        "sidepanel_sidepanel_sidepanel_label_filters",
+        "sidepanel_sidepanel_sidepanel_label_modal",
+        "sidepanel_sidepanel_sidepanel_label_form"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "sidepanel/sidepanel.html"
+    },
+    {
+      "id": "linkedin_extension_icon_set",
+      "label": "LinkedIn Multi-Resolution Browser Extension Icon Set",
+      "nodes": [
+        "icons_icon128_linkedin_icon",
+        "icons_icon48_linkedin_icon",
+        "icons_icon16_linkedin_icon"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "icons/icon128.png"
+    }
+  ],
+  "built_at_commit": "2c776f71b03e7dd9d423264dcf7d27879a025e6f"
 }
